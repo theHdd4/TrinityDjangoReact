@@ -115,8 +115,10 @@ const Header = () => {
           <Settings className="w-4 h-4 text-gray-600" />
         </Button>
         
-        <Button variant="ghost" size="sm" className="p-2">
-          <User className="w-4 h-4 text-gray-600" />
+        <Button variant="ghost" size="sm" className="p-2" asChild>
+          <Link to="/users">
+            <User className="w-4 h-4 text-gray-600" />
+          </Link>
         </Button>
 
         <Button 
