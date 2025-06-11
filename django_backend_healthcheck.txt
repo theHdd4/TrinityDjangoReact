@@ -1,0 +1,20 @@
+1. **Start the backend**
+   - Navigate to `TrinityBackendDjango`.
+   - Run `docker compose up -d` to start Postgres, Redis, Mongo and the `web` service.
+2. **Verify containers are running**
+   - Execute `docker compose ps` and ensure the `web` container shows `0.0.0.0:8000->8000/tcp`.
+3. **Check the login endpoint**
+   - Run `curl -i http://localhost:8000/api/accounts/login/`.
+   - You should see a `405` method not allowed response when using GET/HEAD which confirms the endpoint exists.
+   - To test authentication, send a POST request:
+     `curl -i -X POST http://localhost:8000/api/accounts/login/ \
+       -H 'Content-Type: application/json' \
+       -d '{"username": "harsha", "password": "harsha"}'`
+   - The response should contain `Set-Cookie` headers and user information in JSON.
+4. **Inspect CORS headers**
+   - The response to the above POST should include `Access-Control-Allow-Origin` set to the value of `FRONTEND_URL` from `.env`.
+5. **Check application logs**
+   - Use `docker compose logs -f web` to view Django logs and confirm requests are processed.
+6. **Validate the demo user**
+   - `docker compose exec web python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(username='harsha'))"`
+   - This should print the `harsha` user record.
