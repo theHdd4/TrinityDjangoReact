@@ -24,11 +24,14 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
+    console.log('Submitting login form for', username);
+
     const success = await login(username, password);
     if (success) {
       navigate('/projects');
     } else {
       setError('Invalid credentials.');
+      console.log('Login failed for', username);
     }
 
     setIsLoading(false);

@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string) => {
+    console.log('Attempting login for', username);
     try {
       const res = await fetch(`${API_BASE}/login/`, {
         method: 'POST',
@@ -51,15 +52,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
+      console.log('Login response status', res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log('Login success, user:', data.username);
         setUser(data);
         localStorage.setItem('isAuthenticated', 'true');
         setIsAuthenticated(true);
         return true;
+      } else {
+        const text = await res.text();
+        console.log('Login failed:', text);
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.log('Login request error', err);
     }
     return false;
   };

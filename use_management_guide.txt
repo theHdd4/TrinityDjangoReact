@@ -37,7 +37,8 @@ This guide explains how to run the user management stack with Docker and how to 
 5. **Testing the flow**
    - Start the backend with Docker and ensure migrations run (e.g. `docker compose exec web python manage.py migrate`).
    - Create a superuser with `docker compose exec web python manage.py createsuperuser`.
-   - Access `http://localhost:8080/login` in the browser and log in with the created credentials.
+   - The tenant setup script also creates a demo account `harsha/harsha` for quick testing.
+   - Access `http://localhost:8080/login` in the browser and log in with the created credentials or the demo account.
    - Navigate to the Users page via the header icon to view and create users.
    - Use the logout button in the header to end the session.
 
@@ -47,3 +48,5 @@ This guide explains how to run the user management stack with Docker and how to 
    - If login fails with "Invalid credentials", recreate the superuser: `docker compose exec web python manage.py createsuperuser`.
    - Confirm the frontend `.env` sets `VITE_ACCOUNTS_API=http://localhost:8000/api/accounts` and restart `npm start`.
    - For CORS errors, confirm the `django-cors-headers` package is installed and restart the `web` container.
+   - Check browser dev tools Console/Network tabs for `login/` requests.
+   - Enable backend logs with `docker compose logs -f web` to inspect authentication errors.
