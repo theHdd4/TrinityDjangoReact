@@ -14,8 +14,9 @@ interface User {
   preferences: Record<string, unknown> | null;
 }
 
-const API_BASE = import.meta.env.VITE_ACCOUNTS_API ||
-  'http://localhost:8000/api/accounts';
+import { ACCOUNTS_API } from '@/lib/api';
+
+const API_BASE = ACCOUNTS_API;
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);

@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ACCOUNTS_API } from '@/lib/api';
 
 interface UserInfo {
   id: number;
@@ -18,8 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = import.meta.env.VITE_ACCOUNTS_API ||
-  "http://localhost:8000/api/accounts";
+const API_BASE = ACCOUNTS_API;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
