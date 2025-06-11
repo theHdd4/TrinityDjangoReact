@@ -22,7 +22,7 @@ const Users = () => {
 
   const loadUsers = async () => {
     try {
-      const res = await fetch(`${API_BASE}/users/`);
+      const res = await fetch(`${API_BASE}/users/`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -46,6 +46,7 @@ const Users = () => {
       const res = await fetch(`${API_BASE}/users/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(form),
       });
       if (res.ok) {

@@ -24,16 +24,13 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
-    // Simulate loading for better UX
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    if (username === 'username' && password === 'password') {
-      login();
+    const success = await login(username, password);
+    if (success) {
       navigate('/projects');
     } else {
-      setError('Invalid credentials. Please try again.');
+      setError('Invalid credentials.');
     }
-    
+
     setIsLoading(false);
   };
 

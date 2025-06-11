@@ -55,6 +55,9 @@ INSTALLED_APPS = SHARED_APPS + [
     app for app in TENANT_APPS if app not in SHARED_APPS
 ]
 
+# Custom user model
+AUTH_USER_MODEL = "accounts.User"
+
 # Specify tenant & domain models by app_label.ModelName
 TENANT_MODEL = "tenants.Tenant"
 TENANT_DOMAIN_MODEL = "tenants.Domain"

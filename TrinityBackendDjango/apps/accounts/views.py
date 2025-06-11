@@ -1,4 +1,8 @@
-from rest_framework import viewsets, permissions
+from django.contrib.auth import authenticate, login, logout
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.decorators import action
 from .models import User, UserProfile
 from .serializers import UserSerializer, UserProfileSerializer
 
@@ -16,6 +20,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return [permissions.IsAdminUser()]
         return super().get_permissions()
 
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        """Return the currently authenticated user."""
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     """
@@ -30,3 +40,25 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         if user.is_staff:
             return self.queryset
         return self.queryset.filter(user=user)
+
+
+class LoginView(APIView):
+    """Authenticate a user and start a session."""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return Response(UserSerializer(user).data)
+        return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response({"detail": "Logged out"})
