@@ -29,7 +29,7 @@ def main():
         # 2a) Create (or get) the Tenant row in public
         tenant_obj, created = Tenant.objects.get_or_create(
             schema_name=tenant_schema,
-            defaults={"name": tenant_name, "auto_create_schema": True},
+            defaults={"name": tenant_name},
         )
         if created:
             print(f"→ 2) Created Tenant: {tenant_obj}")
