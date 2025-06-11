@@ -56,6 +56,17 @@ def main():
             print(f"   → Created Domain: {domain_obj}")
         else:
             print(f"   → Domain already existed: {domain_obj}")
+
+        # Additional localhost aliases for convenience
+        for extra in ("localhost", "127.0.0.1"):
+            if extra != primary_domain:
+                alias, created = Domain.objects.get_or_create(
+                    domain=extra,
+                    tenant=tenant_obj,
+                    defaults={"is_primary": False},
+                )
+                if created:
+                    print(f"   → Added alias domain: {alias}")
     print()
 
     print(f"→ 3) Running TENANT-SCHEMA migrations for '{tenant_schema}'…")
