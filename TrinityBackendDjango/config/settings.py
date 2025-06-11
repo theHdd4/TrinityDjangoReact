@@ -161,10 +161,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 #
 # CORS
 #
-# Allow requests from the dev frontend. Credentials are required because the
-# React app relies on session cookies for authentication.
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [os.getenv("FRONTEND_URL", "http://localhost:8080")]
+# Allow requests from any origin during local development. Credentials are
+# required because the React app relies on session cookies for authentication.
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 
