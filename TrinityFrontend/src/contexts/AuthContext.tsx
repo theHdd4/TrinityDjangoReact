@@ -18,7 +18,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = "http://localhost:8000/api/accounts";
+const API_BASE = import.meta.env.VITE_ACCOUNTS_API ||
+  "http://localhost:8000/api/accounts";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

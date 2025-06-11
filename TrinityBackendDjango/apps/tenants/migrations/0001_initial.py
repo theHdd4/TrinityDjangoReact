@@ -16,17 +16,16 @@ class Migration(migrations.Migration):
             name='Tenant',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('schema_name', models.CharField(db_index=True, max_length=63, unique=True)),
                 ('name', models.CharField(max_length=255, unique=True)),
-                ('schema_name', models.CharField(max_length=255, unique=True)),
                 ('created_on', models.DateField(auto_now_add=True)),
-                ('auto_create_schema', models.BooleanField(default=True)),
             ],
         ),
         migrations.CreateModel(
             name='Domain',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('domain', models.CharField(max_length=255, unique=True)),
+                ('domain', models.CharField(max_length=253, unique=True)),
                 ('is_primary', models.BooleanField(default=False)),
                 ('tenant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='domains', to='tenants.tenant')),
             ],
