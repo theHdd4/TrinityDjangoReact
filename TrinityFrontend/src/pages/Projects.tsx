@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Plus, FolderOpen, Calendar, Pencil } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
+import { Plus, FolderOpen, Calendar, Pencil, Trash2 } from 'lucide-react';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import LogoText from '@/components/LogoText';
 
@@ -42,6 +53,7 @@ const Projects = () => {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const startRename = (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
@@ -63,6 +75,13 @@ const Projects = () => {
     setProjects(updated);
     localStorage.setItem('trinity-projects', JSON.stringify(updated));
     setEditingId(null);
+  };
+
+  const deleteProject = (id: string) => {
+    const updated = projects.filter((p) => p.id !== id);
+    setProjects(updated);
+    localStorage.setItem('trinity-projects', JSON.stringify(updated));
+    setDeleteId(null);
   };
 
   return (
@@ -126,7 +145,43 @@ const Projects = () => {
                         <Pencil className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="w-2 h-2 bg-trinity-green rounded-full animate-pulse opacity-60"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-trinity-green rounded-full animate-pulse opacity-60"></div>
+                      <AlertDialog
+                        open={deleteId === project.id}
+                        onOpenChange={(open) => {
+                          if (!open) setDeleteId(null);
+                        }}
+                      >
+                        <AlertDialogTrigger asChild>
+                          <button
+                            type="button"
+                            className="p-1 text-red-500 hover:text-red-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteId(project.id);
+                            }}
+                            title="Delete project"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteProject(project.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                   
                   <div className="flex-1">
