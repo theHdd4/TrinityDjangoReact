@@ -49,8 +49,9 @@ def main():
     print()
 
     print(f"→ 3) Running TENANT-SCHEMA migrations for '{tenant_schema}'…")
-    # This will switch into acme_corp_schema and apply all TENANT_APPS there
-    call_command("migrate_schemas", "--tenant", tenant_schema, interactive=False, verbosity=1)
+    # Switch into the tenant schema and apply all tenant apps there
+    # `migrate_schemas` expects the schema name via the --schema flag.
+    call_command("migrate_schemas", "--schema", tenant_schema, interactive=False, verbosity=1)
     print("   ✅ Tenant-schema migrations complete.\n")
 
     print("All done! Tenant and all tables created.\n")

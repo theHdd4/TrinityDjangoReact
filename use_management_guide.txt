@@ -5,8 +5,10 @@ This guide explains how to run the user management stack with Docker and how to 
    - Copy `.env.example` to `.env` and adjust database credentials if required.
    - Run `docker compose up --build` to start Postgres, Mongo, Redis and the Django web service.
    - On first run, initialise the database and tenant schema by running
-     `docker compose exec web python create_tenant.py`.
-     This applies migrations for the public schema and creates an example tenant.
+      `docker compose exec web python create_tenant.py`.
+      This applies migrations for the public schema and creates an example tenant.
+      The script now passes `--schema` to `migrate_schemas` so tenant migrations
+      run without the "No installed app" error.
      **Do not run `python manage.py migrate` directly before this step.**
      If you see an error about `no schema has been selected`, confirm your
      database credentials in `.env` match the `postgres` service in
