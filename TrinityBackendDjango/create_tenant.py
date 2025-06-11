@@ -13,7 +13,8 @@ from apps.tenants.models import Tenant, Domain
 def main():
     tenant_name = "acme_corp"
     tenant_schema = "acme_corp_schema"
-    primary_domain = "acme.example.com"
+    # Map localhost requests to the default tenant unless overridden
+    primary_domain = os.getenv("PRIMARY_DOMAIN", "localhost")
 
     print("\n→ 1) Applying SHARED (public) migrations…")
     # Run only shared apps into the public schema

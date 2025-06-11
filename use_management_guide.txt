@@ -5,6 +5,8 @@ This guide explains how to run the user management stack with Docker and how to 
    - Copy `.env.example` to `.env` and adjust database credentials if required.
    - Set `FRONTEND_URL` in `.env` to the origin of the React app (defaults to `http://localhost:8080`).
      This value is used by Django to send the correct `Access-Control-Allow-Origin` header.
+   - Set `PRIMARY_DOMAIN` to the hostname you'll use in the browser (usually `localhost`).
+     Without this, requests may return a 404 because `django-tenants` can't match the host.
    - Run `docker compose up --build` to start Postgres, Mongo, Redis and the Django web service.
    - On first run, initialise the database and tenant schema by running
       `docker compose exec web python create_tenant.py`.
@@ -49,6 +51,7 @@ This guide explains how to run the user management stack with Docker and how to 
    - If login fails with "Invalid credentials", recreate the superuser: `docker compose exec web python manage.py createsuperuser`.
    - Confirm the frontend `.env` sets `VITE_ACCOUNTS_API=http://localhost:8000/api/accounts` and restart `npm start`.
    - For CORS errors, ensure the backend `.env` sets `FRONTEND_URL=http://localhost:8080` (or your custom host) and restart the `web` container.
+   - Ensure `PRIMARY_DOMAIN` in `.env` matches the hostname you use (e.g. `localhost`). Otherwise requests may 404 before hitting Django.
    - Confirm the `django-cors-headers` package is installed and restart the `web` container.
    - Check browser dev tools Console/Network tabs for `login/` requests.
    - Enable backend logs with `docker compose logs -f web` to inspect authentication errors.

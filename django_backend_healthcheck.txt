@@ -1,6 +1,7 @@
 1. **Start the backend**
    - Navigate to `TrinityBackendDjango`.
    - Run `docker compose up -d` to start Postgres, Redis, Mongo and the `web` service.
+   - Ensure `.env` sets `PRIMARY_DOMAIN=localhost` so the local host matches a tenant domain.
 2. **Verify containers are running**
    - Execute `docker compose ps` and ensure the `web` container shows `0.0.0.0:8000->8000/tcp`.
 3. **Check the login endpoint**
@@ -23,3 +24,8 @@
    - Verify your superuser (e.g. `HDD`) exists using:
      `docker compose exec web python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(username='HDD'))"`
    - If no user is returned, recreate it with `docker compose exec web python manage.py createsuperuser`.
+
+8. **Confirm the domain**
+   - Inspect the Domains table to verify `localhost` exists:
+     `docker compose exec web python manage.py shell -c "from apps.tenants.models import Domain; print(Domain.objects.all())"`
+   - If the domain is missing, rerun `create_tenant.py` or create it manually.
