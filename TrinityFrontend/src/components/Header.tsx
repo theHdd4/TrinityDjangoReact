@@ -91,7 +91,7 @@ const Header = () => {
             <button
               type="button"
               onClick={handleGoBack}
-              className="p-2 text-trinity-yellow hover:text-trinity-blue"
+              className="p-2 text-black"
               title="Go back to app menu"
             >
               <BackToAppsIcon className="w-5 h-5" />
