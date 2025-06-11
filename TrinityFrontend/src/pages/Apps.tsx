@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Zap, BarChart3, Target, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import AnimatedLogo from '@/components/AnimatedLogo';
-import LogoText from '@/components/LogoText';
+import Header from '@/components/Header';
 import AppCard from '@/components/AppList/AppCard';
 
 const Apps = () => {
@@ -89,29 +88,20 @@ const Apps = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Header */}
+      <Header />
+
       <div className="relative z-10 p-8">
-        <div className="flex items-center space-x-4">
-          <AnimatedLogo className="w-12 h-12" />
-          <LogoText />
-        </div>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/projects')}
+          className="text-black hover:bg-trinity-yellow/10"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Projects
+        </Button>
         <div className="mt-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/projects')}
-            className="text-black hover:bg-trinity-yellow/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Projects
-          </Button>
-        </div>
-        <div className="mt-4">
-          <h1 className="text-3xl font-light text-black">
-            Choose Your Trinity App
-          </h1>
-          <p className="text-black/60 text-sm">
-            Select an application template to initialize
-          </p>
+          <h1 className="text-3xl font-light text-black">Choose Your Trinity App</h1>
+          <p className="text-black/60 text-sm">Select an application template to initialize</p>
         </div>
       </div>
 

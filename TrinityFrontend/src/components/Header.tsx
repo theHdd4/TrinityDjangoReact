@@ -34,6 +34,10 @@ const Header = () => {
     navigate('/apps');
   };
 
+  const simpleHeader =
+    location.pathname.startsWith('/apps') ||
+    location.pathname.startsWith('/projects');
+
   return (
     <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between shadow-sm">
       <div className="flex items-center space-x-10">
@@ -50,42 +54,44 @@ const Header = () => {
           </div>
         </Link>
         
-        <nav className="flex items-center space-x-8">
-          <Link 
-            to="/workflow" 
-            className={`font-light text-sm transition-colors ${
-              location.pathname === '/workflow' 
-                ? 'text-trinity-blue border-b-2 border-trinity-blue pb-1' 
-                : 'text-gray-600 hover:text-trinity-blue'
-            }`}
-          >
-            Workflow
-          </Link>
-          <Link 
-            to="/laboratory" 
-            className={`font-light text-sm transition-colors ${
-              location.pathname === '/laboratory' 
-                ? 'text-trinity-blue border-b-2 border-trinity-blue pb-1' 
-                : 'text-gray-600 hover:text-trinity-blue'
-            }`}
-          >
-            Laboratory
-          </Link>
-          <Link 
-            to="/exhibition" 
-            className={`font-light text-sm transition-colors ${
-              location.pathname === '/exhibition' 
-                ? 'text-trinity-blue border-b-2 border-trinity-blue pb-1' 
-                : 'text-gray-600 hover:text-trinity-blue'
-            }`}
-          >
-            Exhibition
-          </Link>
-        </nav>
+        {!simpleHeader && (
+          <nav className="flex items-center space-x-8">
+            <Link
+              to="/workflow"
+              className={`font-light text-sm transition-colors ${
+                location.pathname === '/workflow'
+                  ? 'text-trinity-blue border-b-2 border-trinity-blue pb-1'
+                  : 'text-gray-600 hover:text-trinity-blue'
+              }`}
+            >
+              Workflow
+            </Link>
+            <Link
+              to="/laboratory"
+              className={`font-light text-sm transition-colors ${
+                location.pathname === '/laboratory'
+                  ? 'text-trinity-blue border-b-2 border-trinity-blue pb-1'
+                  : 'text-gray-600 hover:text-trinity-blue'
+              }`}
+            >
+              Laboratory
+            </Link>
+            <Link
+              to="/exhibition"
+              className={`font-light text-sm transition-colors ${
+                location.pathname === '/exhibition'
+                  ? 'text-trinity-blue border-b-2 border-trinity-blue pb-1'
+                  : 'text-gray-600 hover:text-trinity-blue'
+              }`}
+            >
+              Exhibition
+            </Link>
+          </nav>
+        )}
       </div>
 
       <div className="flex items-center space-x-4">
-        {projectName && (
+        {projectName && !simpleHeader && (
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <span>{projectName}</span>
             <button

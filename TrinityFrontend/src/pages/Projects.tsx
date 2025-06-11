@@ -13,8 +13,7 @@ import {
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
 import { Plus, FolderOpen, Calendar, Pencil, Trash2 } from 'lucide-react';
-import AnimatedLogo from '@/components/AnimatedLogo';
-import LogoText from '@/components/LogoText';
+import Header from '@/components/Header';
 
 interface Project {
   id: string;
@@ -87,20 +86,11 @@ const Projects = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Header */}
+      <Header />
+
       <div className="relative z-10 p-8">
-        <div className="flex items-center space-x-4">
-          <AnimatedLogo className="w-12 h-12" />
-          <LogoText />
-        </div>
-        <div className="mt-4">
-          <h1 className="text-3xl font-light text-black">
-            Trinity Projects
-          </h1>
-          <p className="text-black/60 text-sm">
-            Access your quantum matrices
-          </p>
-        </div>
+        <h1 className="text-3xl font-light text-black">Trinity Projects</h1>
+        <p className="text-black/60 text-sm">Access your quantum matrices</p>
       </div>
 
       {/* Main Content */}
