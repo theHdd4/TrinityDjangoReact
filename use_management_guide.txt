@@ -4,8 +4,11 @@ This guide explains how to run the user management stack with Docker and how to 
    - Navigate to `TrinityBackendDjango`.
    - Copy `.env.example` to `.env` and adjust database credentials if required.
    - Run `docker compose up --build` to start Postgres, Mongo, Redis and the Django web service.
-   - On first run, apply migrations with `docker compose exec web python manage.py migrate`.
-   - Then create an admin account using `docker compose exec web python manage.py createsuperuser`.
+   - On first run, initialise the database and tenant schema by running
+     `docker compose exec web python create_tenant.py`.
+     This applies migrations for the public schema and creates an example tenant.
+   - After the script completes, create an admin account with
+     `docker compose exec web python manage.py createsuperuser`.
    - The backend API will be available at `http://localhost:8000/`.
 
 2. **Frontend**

@@ -21,6 +21,7 @@ SHARED_APPS = [
 
     # tenant model
     "apps.tenants",
+    "apps.accounts",  # user model must exist on the public schema
 
     # Django contrib (shared)
     "django.contrib.contenttypes",
@@ -38,7 +39,6 @@ SHARED_APPS = [
 ]
 
 TENANT_APPS = [
-    "apps.accounts",
     "apps.registry",
     "apps.subscriptions",
     "apps.workflows",
