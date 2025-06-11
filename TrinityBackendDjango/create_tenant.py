@@ -2,7 +2,7 @@
 import os
 import django
 from django.core.management import call_command
-from django.db import transaction
+from django.db import transaction, connection
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
@@ -17,6 +17,11 @@ def main():
 
     print("\n→ 1) Applying SHARED (public) migrations…")
     # Run only shared apps into the public schema
+    # Ensure the connection points to the public schema before migrating
+    try:
+        connection.set_schema_to_public()
+    except Exception:
+        pass
     call_command("migrate_schemas", "--shared", interactive=False, verbosity=1)
     print("   ✅ Shared migrations complete.\n")
 

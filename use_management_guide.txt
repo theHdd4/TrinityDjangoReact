@@ -7,6 +7,9 @@ This guide explains how to run the user management stack with Docker and how to 
    - On first run, initialise the database and tenant schema by running
      `docker compose exec web python create_tenant.py`.
      This applies migrations for the public schema and creates an example tenant.
+     If you see an error about `no schema has been selected`, confirm your
+     database credentials in `.env` match the `postgres` service in
+     `docker-compose.yml` and that the container is running.
    - After the script completes, create an admin account with
      `docker compose exec web python manage.py createsuperuser`.
    - The backend API will be available at `http://localhost:8000/`.
