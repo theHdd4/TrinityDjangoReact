@@ -4,11 +4,14 @@ This guide explains how to run the user management stack with Docker and how to 
    - Navigate to `TrinityBackendDjango`.
    - Copy `.env.example` to `.env` and adjust database credentials if required.
    - Run `docker compose up --build` to start Postgres, Mongo, Redis and the Django web service.
+   - On first run, apply migrations with `docker compose exec web python manage.py migrate`.
+   - Then create an admin account using `docker compose exec web python manage.py createsuperuser`.
    - The backend API will be available at `http://localhost:8000/`.
 
 2. **Frontend**
-   - Inside `TrinityFrontend`, install dependencies with `npm install` then run `npm start`.
-   - The React app proxies API requests to `localhost:8000` so both stacks must run concurrently.
+   - Inside `TrinityFrontend`, copy `.env.example` to `.env` if you wish to override the API host.
+   - Install dependencies with `npm install` then run `npm start` (Vite dev server on port 8080).
+   - The React app proxies API requests to the URL defined in `VITE_ACCOUNTS_API`.
 
 3. **Endpoints**
    - User related API routes live in `TrinityBackendDjango/apps/accounts/urls.py`.
@@ -18,12 +21,12 @@ This guide explains how to run the user management stack with Docker and how to 
    - CRUD users: `/api/accounts/users/`
 
 4. **Updating the API base URL**
-   - Frontend requests use `http://localhost:8000/api/accounts` defined in `src/contexts/AuthContext.tsx` and `src/pages/Users.tsx`.
-   - Change this value if the backend runs on a different host or port.
+   - The base URL is controlled via `VITE_ACCOUNTS_API` in the frontend `.env` file.
+   - Both `AuthContext` and the Users page read this environment variable.
 
 5. **Testing the flow**
    - Start the backend with Docker and ensure migrations run (e.g. `docker compose exec web python manage.py migrate`).
    - Create a superuser with `docker compose exec web python manage.py createsuperuser`.
-   - Access `http://localhost:3000/login` in the browser and log in with the created credentials.
+   - Access `http://localhost:8080/login` in the browser and log in with the created credentials.
    - Navigate to the Users page via the header icon to view and create users.
    - Use the logout button in the header to end the session.
