@@ -131,7 +131,7 @@ const Login = () => {
 
             <div className="text-center">
               <p className="text-black text-xs font-mono">
-                Demo Credentials: username / password
+                Demo Credentials: harsha / harsha
               </p>
             </div>
           </CardContent>
