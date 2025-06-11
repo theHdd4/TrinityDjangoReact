@@ -52,3 +52,5 @@ This guide explains how to run the user management stack with Docker and how to 
    - Confirm the `django-cors-headers` package is installed and restart the `web` container.
    - Check browser dev tools Console/Network tabs for `login/` requests.
    - Enable backend logs with `docker compose logs -f web` to inspect authentication errors.
+   - On Windows, use `curl.exe` instead of `curl` when testing endpoints in PowerShell.
+   - Run `curl -i http://localhost:8000/api/accounts/login/` and expect a `405` response, which shows the route exists.

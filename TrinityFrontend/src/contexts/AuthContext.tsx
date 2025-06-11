@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const authState = localStorage.getItem('isAuthenticated');
     if (authState === 'true') {
-      // check session
+      console.log('Checking existing session');
       fetch(`${API_BASE}/users/me/`, { credentials: 'include' })
         .then(async (res) => {
           if (res.ok) {
@@ -37,9 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsAuthenticated(true);
           } else {
             setIsAuthenticated(false);
+            console.log('Session check failed', res.status);
           }
         })
-        .catch(() => setIsAuthenticated(false));
+        .catch((err) => {
+          setIsAuthenticated(false);
+          console.log('Session check error', err);
+        });
     }
   }, []);
 
@@ -71,6 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    console.log('Logging out');
     await fetch(`${API_BASE}/logout/`, { method: 'POST', credentials: 'include' });
     localStorage.removeItem('isAuthenticated');
     setIsAuthenticated(false);

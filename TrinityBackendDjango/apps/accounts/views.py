@@ -1,4 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -42,9 +44,12 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(user=user)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class LoginView(APIView):
     """Authenticate a user and start a session."""
+    # No authentication required for login, CSRF disabled by decorator
     permission_classes = [permissions.AllowAny]
+    authentication_classes: list = []
 
     def post(self, request):
         username = request.data.get("username")
