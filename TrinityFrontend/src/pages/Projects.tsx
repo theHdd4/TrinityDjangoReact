@@ -144,9 +144,6 @@ const Projects = () => {
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-trinity-green rounded-full animate-pulse opacity-60"></div>
                       <AlertDialog
                         open={deleteId === project.id}
                         onOpenChange={(open) => {
@@ -175,12 +172,20 @@ const Projects = () => {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteProject(project.id)}>
+                            <AlertDialogAction
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteProject(project.id);
+                              }}
+                            >
                               Delete
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-trinity-green rounded-full animate-pulse opacity-60"></div>
                     </div>
                   </div>
                   
