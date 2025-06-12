@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,35 @@ import Header from '@/components/Header';
 import AppCard from '@/components/AppList/AppCard';
 import { REGISTRY_API } from '@/lib/api';
 
+interface BackendApp {
+  id: number;
+  slug: string;
+}
+
 const Apps = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [appMap, setAppMap] = useState<Record<string, number>>({});
+
+  const loadApps = async () => {
+    try {
+      const res = await fetch(`${REGISTRY_API}/apps/`, { credentials: 'include' });
+      if (res.ok) {
+        const data: BackendApp[] = await res.json();
+        const map: Record<string, number> = {};
+        data.forEach((a) => {
+          map[a.slug] = a.id;
+        });
+        setAppMap(map);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
+  useEffect(() => {
+    loadApps();
+  }, []);
 
   const apps = [
     {
@@ -53,9 +79,16 @@ const Apps = () => {
 
 
 const handleAppSelect = async (appId: string) => {
-  const template = apps.find(app => app.id === appId);
+  const template = apps.find((app) => app.id === appId);
   if (!template) return;
   const name = template.title;
+  const backendId = appMap[appId];
+  if (!backendId) {
+    await loadApps();
+  }
+  const id = appMap[appId];
+  if (!id) return;
+  const slug = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
   try {
     const res = await fetch(`${REGISTRY_API}/projects/`, {
       method: 'POST',
@@ -63,9 +96,9 @@ const handleAppSelect = async (appId: string) => {
       credentials: 'include',
       body: JSON.stringify({
         name,
-        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        slug,
         description: `New ${name} project`,
-        app: appId,
+        app: id,
       }),
     });
     if (res.ok) {
