@@ -9,6 +9,7 @@ from .models import User, UserProfile
 from .serializers import UserSerializer, UserProfileSerializer
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class UserViewSet(viewsets.ModelViewSet):
     """
     CRUD for users. Admin-only for list/create; users can retrieve/update their own.

@@ -155,6 +155,7 @@ const Header = () => {
                 </div>
               </div>
             </DropdownMenuItem>
+            <DropdownMenuItem disabled>My Profile</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => navigate('/users')}>
               User Management
             </DropdownMenuItem>

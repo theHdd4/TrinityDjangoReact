@@ -26,14 +26,16 @@ def main():
     call_command("migrate_schemas", "--shared", interactive=False, verbosity=1)
     print("   ✅ Shared migrations complete.\n")
 
-    # Create an initial user for testing login if it doesn't exist
+    # Create an initial admin user for testing login if it doesn't exist
     from django.contrib.auth import get_user_model
     User = get_user_model()
     if not User.objects.filter(username="harsha").exists():
-        User.objects.create_user(username="harsha", password="harsha")
-        print("→ 1b) Created default user 'harsha' with password 'harsha'")
+        User.objects.create_superuser(
+            username="harsha", password="harsha", email=""
+        )
+        print("→ 1b) Created default admin 'harsha' with password 'harsha'")
     else:
-        print("→ 1b) Default user 'harsha' already exists")
+        print("→ 1b) Default admin 'harsha' already exists")
 
     with transaction.atomic():
         # 2a) Create (or get) the Tenant row in public
