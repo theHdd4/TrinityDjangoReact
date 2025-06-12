@@ -29,18 +29,24 @@ const Apps = () => {
   };
 
   const loadApps = async () => {
+    console.log('Fetching apps from backend...');
     try {
       const res = await fetch(`${REGISTRY_API}/apps/`, { credentials: 'include' });
+      console.log('Apps response status', res.status);
       if (res.ok) {
         const data: BackendApp[] = await res.json();
+        console.log('Loaded apps', data);
         const map: Record<string, number> = {};
         data.forEach((a) => {
           map[a.slug] = a.id;
         });
         setAppMap(map);
+      } else {
+        const text = await res.text();
+        console.log('Failed to load apps:', text);
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.log('Apps fetch error', err);
     }
   };
 
@@ -99,17 +105,22 @@ const handleAppSelect = async (appId: string) => {
   if (!backendId) {
     try {
       const res = await fetch(`${REGISTRY_API}/apps/`, { credentials: 'include' });
+      console.log('Lookup apps response', res.status);
       if (res.ok) {
         const data: BackendApp[] = await res.json();
+        console.log('Fetched apps', data);
         const map: Record<string, number> = {};
         data.forEach((a) => {
           map[a.slug] = a.id;
         });
         setAppMap(map);
         backendId = map[appId];
+      } else {
+        const text = await res.text();
+        console.log('Failed to fetch apps for mapping:', text);
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.log('App map fetch error', err);
     }
   }
   if (!backendId) return;
@@ -127,8 +138,10 @@ const handleAppSelect = async (appId: string) => {
         app: backendId,
       }),
     });
+    console.log('Create project status', res.status);
     if (res.ok) {
       const project = await res.json();
+      console.log('Created project', project);
       localStorage.setItem('current-project', JSON.stringify(project));
       const ids = templates[appId] || [];
       let layout: any[] = [];
@@ -162,20 +175,21 @@ const handleAppSelect = async (appId: string) => {
 
       // Persist initial workflow layout on the server
       try {
-        await fetch(`${REGISTRY_API}/projects/${project.id}/`, {
+        const patchRes = await fetch(`${REGISTRY_API}/projects/${project.id}/`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({ state: { workflow_canvas: layout } })
         });
+        console.log('Saved layout status', patchRes.status);
       } catch {
-        /* ignore */
+        console.log('Failed to save layout');
       }
 
       navigate('/workflow');
     }
-  } catch {
-    /* ignore */
+  } catch (err) {
+    console.log('Project create error', err);
   }
 };
 
