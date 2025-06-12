@@ -41,14 +41,11 @@ class TenantSerializer(serializers.ModelSerializer):
         if domain:
             Domain.objects.create(domain=domain, tenant=tenant, is_primary=True)
 
-        # Run migrations so tenant-specific tables exist
-        call_command(
-            "migrate_schemas",
-            "--schema",
-            tenant.schema_name,
-            interactive=False,
-            verbosity=0,
-        )
+        # Ensure the tenant schema and migrations are in place. The tenant
+        # model's `auto_create_schema` handles new schemas, but calling
+        # `create_schema` here guarantees migrations are applied even if the
+        # schema already existed.
+        tenant.create_schema(check_if_exists=True, verbosity=0)
 
         # Use the tenant schema for tenant-specific tables and default app seeds
         with schema_context(tenant.schema_name):
