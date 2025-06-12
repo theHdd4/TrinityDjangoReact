@@ -54,7 +54,7 @@ const Projects = () => {
 
   const openProject = (project: Project) => {
     localStorage.setItem('current-project', JSON.stringify(project));
-    navigate('/');
+    navigate('/workflow');
   };
 
   const [editingId, setEditingId] = useState<number | null>(null);

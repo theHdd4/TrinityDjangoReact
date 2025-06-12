@@ -82,12 +82,27 @@ const handleAppSelect = async (appId: string) => {
   const template = apps.find((app) => app.id === appId);
   if (!template) return;
   const name = template.title;
-  const backendId = appMap[appId];
+
+  // Ensure we have a mapping from slug to backend ID
+  let backendId = appMap[appId];
   if (!backendId) {
-    await loadApps();
+    try {
+      const res = await fetch(`${REGISTRY_API}/apps/`, { credentials: 'include' });
+      if (res.ok) {
+        const data: BackendApp[] = await res.json();
+        const map: Record<string, number> = {};
+        data.forEach((a) => {
+          map[a.slug] = a.id;
+        });
+        setAppMap(map);
+        backendId = map[appId];
+      }
+    } catch {
+      /* ignore */
+    }
   }
-  const id = appMap[appId];
-  if (!id) return;
+  if (!backendId) return;
+
   const slug = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
   try {
     const res = await fetch(`${REGISTRY_API}/projects/`, {
@@ -98,13 +113,13 @@ const handleAppSelect = async (appId: string) => {
         name,
         slug,
         description: `New ${name} project`,
-        app: id,
+        app: backendId,
       }),
     });
     if (res.ok) {
       const project = await res.json();
       localStorage.setItem('current-project', JSON.stringify(project));
-      navigate('/');
+      navigate('/workflow');
     }
   } catch {
     /* ignore */
