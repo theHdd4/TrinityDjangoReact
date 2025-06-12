@@ -27,8 +27,12 @@ def main():
     with transaction.atomic():
         tenant, _ = Tenant.objects.get_or_create(
             schema_name=tenant_schema,
-            defaults={"name": tenant_name, "auto_create_schema": True},
+            defaults={"name": tenant_name},
         )
+        # ensure schema auto-creation is enabled then save
+        tenant.auto_create_schema = True
+        tenant.save()
+
         Domain.objects.get_or_create(domain=primary_domain, tenant=tenant, defaults={"is_primary": True})
 
     print("\n→ Applying tenant migrations…")
