@@ -1,5 +1,8 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from .models import App, Project, Session
+
+User = get_user_model()
 
 
 class AppSerializer(serializers.ModelSerializer):
@@ -11,7 +14,7 @@ class AppSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
-        slug_field="username", queryset=App._meta.get_field('slug').model.objects.all()
+        slug_field="username", queryset=User.objects.all(), required=False
     )
 
     class Meta:

@@ -31,5 +31,10 @@
      - **Username** and **Password**: use the values from `.env`.
    - Once connected you can browse databases, tables and run SQL queries from the web interface.
 
-7. **Exit psql** with `\q` and then exit the container shell if you used the CLI.
+7. **Direct psql from host**
+   - If you have `psql` installed locally you can connect without entering the container:
+     `psql -h localhost -p 5432 -U $POSTGRES_USER $POSTGRES_DB`
+   - Run queries just like inside the container, e.g. `SELECT COUNT(*) FROM accounts_user;`.
+
+8. **Exit psql** with `\q` and then exit the container shell if you used the CLI.
 
