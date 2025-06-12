@@ -14,7 +14,9 @@
        -d '{"username": "harsha", "password": "harsha"}'`
    - The response should contain `Set-Cookie` headers and user information in JSON.
 4. **Inspect CORS headers**
-   - The response to the above POST should include `Access-Control-Allow-Origin` set to the value of `FRONTEND_URL` from `.env`.
+   - The response to the above POST should include `Access-Control-Allow-Origin`.
+     If not present, set `CORS_ALLOW_ALL=true` in `.env` and restart the web service
+     to disable origin checks during development.
 5. **Check application logs**
    - Use `docker compose logs -f web` to view Django logs and confirm requests are processed.
 6. **Validate the demo user**

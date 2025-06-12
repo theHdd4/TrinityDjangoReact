@@ -51,7 +51,7 @@ This guide explains how to run the user management stack with Docker and how to 
    - Verify the admin user exists by running `docker compose exec web python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.all())"`.
    - If login fails with "Invalid credentials", recreate the superuser: `docker compose exec web python manage.py createsuperuser`.
    - Confirm the frontend `.env` sets `VITE_ACCOUNTS_API=http://localhost:8000/api/accounts` and restart `npm start`.
-   - For CORS errors, ensure the backend `.env` sets `FRONTEND_URL=http://localhost:8080` (or your custom host) and restart the `web` container.
+  - For CORS errors, ensure the backend `.env` sets `FRONTEND_URL=http://localhost:8080` (or your custom host) and restart the `web` container. For quick testing you can set `CORS_ALLOW_ALL=true` in `.env` to disable the origin check entirely.
    - Ensure `PRIMARY_DOMAIN` in `.env` matches the hostname you use (e.g. `localhost`).
      If you update this value, rerun `python create_tenant.py` so the new domain is registered.
    - Confirm the `django-cors-headers` package is installed and restart the `web` container.
