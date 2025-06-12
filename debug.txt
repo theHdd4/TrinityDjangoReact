@@ -1,0 +1,3 @@
+Navigation from the /apps page failed because the backend didn't have any App templates. The frontend tries to create a Project referencing an App ID fetched from `/api/registry/apps/`, but that list was empty so the POST `/api/registry/projects/` returned `400 Bad Request`. The project never got created and navigation to `/workflow` stopped.
+
+The fix seeds four default App records during `create_tenant.py` execution. Now the `/apps` endpoint returns IDs and project creation succeeds, so selecting an app navigates correctly into Workflow mode.
