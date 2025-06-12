@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.utils import timezone
 from django_tenants.utils import schema_context
 from django.core.management import call_command
+import re
 from .models import Tenant, Domain
 from apps.subscriptions.models import Company, SubscriptionPlan
 from apps.config_store.models import TenantConfig
@@ -36,6 +37,15 @@ class TenantSerializer(serializers.ModelSerializer):
         seats = validated_data.pop("seats_allowed", None)
         project_cap = validated_data.pop("project_cap", None)
         apps_allowed = validated_data.pop("apps_allowed", None)
+
+        # Normalize the schema name to a safe, lower-case value. Upper case
+        # characters or spaces cause Postgres to error when creating the schema
+        # and previously resulted in a 500 response when adding clients.
+        schema = validated_data.get("schema_name", "").lower().replace("-", "_")
+        schema = schema.replace(" ", "_")
+        if not schema or not re.match(r"^[a-z][a-z0-9_]+$", schema):
+            raise serializers.ValidationError({"schema_name": "Invalid schema name"})
+        validated_data["schema_name"] = schema
 
         try:
             tenant = Tenant.objects.create(**validated_data)

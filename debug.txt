@@ -7,3 +7,4 @@ The fix seeds four default App records during `create_tenant.py` execution. Now 
 `migrate_schemas` call inside the serializer did not always apply tenant
 migrations. The serializer now invokes `tenant.create_schema(check_if_exists=True)`
 so migrations run reliably before seeding default apps.
+\nNew issue: 500 error when creating tenants due to invalid schema names with capital letters. Serializer now normalizes and validates schema_name.
