@@ -26,6 +26,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "description",
             "owner",
             "app",
+            "state",
             "created_at",
             "updated_at",
         ]

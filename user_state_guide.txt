@@ -1,0 +1,30 @@
+User State Persistence Guide
+===========================
+
+Trinity stores user, project and session information primarily in PostgreSQL.  MongoDB is available for future data processing engines but is not used directly by the current UI.
+
+## Where data lives
+
+- **Users** – `auth_user` table in PostgreSQL. Created via the Accounts API or Django Admin.
+- **Apps** – `registry_app` table in PostgreSQL. These are templates a Project is based on.
+- **Projects** – `registry_project` table in PostgreSQL. A `state` JSON field saves workflow molecules and laboratory layouts.
+- **Sessions** – `registry_session` table in PostgreSQL. Tracks who opened a project and can also hold transient context.
+
+## Retrieval
+
+The frontend calls `/api/registry/projects/` to list the authenticated user's projects. Each project record includes its saved `state`.
+
+When a project is opened the `state` field is patched as the user renders workflows or saves laboratory configurations.  On page load the UI fetches the latest project data so previously created molecules and atoms appear automatically.
+
+## Validation steps
+
+1. Start the containers with `docker-compose up` and ensure the `web` service is healthy.
+2. Log in using your credentials (e.g. `harsha/harsha`).
+3. Create or open a project from the UI.
+4. After rendering a workflow or saving the laboratory layout, check the `registry_project` table:
+   ```bash
+   docker compose exec postgres psql -U trinity_user -d trinity_db -c "SELECT id,name,state FROM registry_project;"
+   ```
+   Confirm that the `state` column contains your JSON configuration.
+5. Revisit the application and open the same project – the workflow molecules and laboratory atoms should reload from the stored state.
+

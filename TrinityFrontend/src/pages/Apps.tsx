@@ -1,11 +1,12 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Zap, BarChart3, Target, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '@/components/Header';
 import AppCard from '@/components/AppList/AppCard';
+import { REGISTRY_API } from '@/lib/api';
 
 const Apps = () => {
   const navigate = useNavigate();
@@ -51,39 +52,31 @@ const Apps = () => {
   ];
 
 
-  const getNextNumber = (baseName: string) => {
-    const projects = JSON.parse(localStorage.getItem('trinity-projects') || '[]');
-    const regex = new RegExp(`^${baseName} #(\\d+)$`);
-    const nums = projects
-      .map((p: any) => (regex.exec(p.name)?.[1]))
-      .filter(Boolean)
-      .map((n: string) => parseInt(n, 10));
-    return (Math.max(0, ...nums) + 1);
-  };
-
-
-  const handleAppSelect = (appId: string) => {
-    const template = apps.find(app => app.id === appId);
-    if (!template) return;
-    const baseName = appId === 'blank' ? 'Custom App' : template.title;
-    const name = `${baseName} #${getNextNumber(baseName)}`;
-    const newProject = {
-      id: Date.now().toString(),
-      name,
-      lastModified: new Date(),
-      description: `New ${baseName} project`,
-      appTemplate: appId
-    };
-    
-    // Save to existing projects
-    const existingProjects = JSON.parse(localStorage.getItem('trinity-projects') || '[]');
-    const updatedProjects = [...existingProjects, newProject];
-    localStorage.setItem('trinity-projects', JSON.stringify(updatedProjects));
-    localStorage.setItem('current-project', JSON.stringify(newProject));
-    
-    // Navigate to main app
-    navigate('/');
-  };
+const handleAppSelect = async (appId: string) => {
+  const template = apps.find(app => app.id === appId);
+  if (!template) return;
+  const name = template.title;
+  try {
+    const res = await fetch(`${REGISTRY_API}/projects/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        name,
+        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        description: `New ${name} project`,
+        app: appId,
+      }),
+    });
+    if (res.ok) {
+      const project = await res.json();
+      localStorage.setItem('current-project', JSON.stringify(project));
+      navigate('/');
+    }
+  } catch {
+    /* ignore */
+  }
+};
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

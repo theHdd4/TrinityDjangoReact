@@ -36,6 +36,11 @@ class Project(models.Model):
     app = models.ForeignKey(
         App, on_delete=models.PROTECT, related_name="projects"
     )
+    state = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Persisted workflow/laboratory configuration for this project.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()

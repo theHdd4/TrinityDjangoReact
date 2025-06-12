@@ -7,6 +7,7 @@ import { Plus, Grid3X3, Trash2, Eye } from 'lucide-react';
 import { useExhibitionStore } from '../../ExhibitionMode/store/exhibitionStore';
 import { atoms as allAtoms } from '@/components/AtomList/data';
 import { molecules } from '@/components/MoleculeList/data';
+import { REGISTRY_API } from '@/lib/api';
 
 interface DroppedAtom {
   id: string;
@@ -166,6 +167,24 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({ onAtomSelect }) => {
           }
         } catch (e) {
           console.error('Failed to parse stored laboratory layout', e);
+        }
+      } else {
+        const current = localStorage.getItem('current-project');
+        if (current) {
+          fetch(`${REGISTRY_API}/projects/${JSON.parse(current).id}/`, { credentials: 'include' })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+              if (data && data.state && data.state.laboratory_config) {
+                const cfg = data.state.laboratory_config;
+                localStorage.setItem(STORAGE_KEY, safeStringify(cfg.cards));
+                localStorage.setItem('laboratory-config', safeStringify(cfg));
+                if (!storedAtoms && data.state.workflow_selected_atoms) {
+                  localStorage.setItem('workflow-selected-atoms', safeStringify(data.state.workflow_selected_atoms));
+                }
+                window.location.reload();
+              }
+            })
+            .catch(() => {});
         }
       }
     }
