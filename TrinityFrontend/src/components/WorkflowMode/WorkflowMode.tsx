@@ -31,7 +31,7 @@ const WorkflowMode = () => {
     setCanvasMolecules(molecules);
   }, []);
 
-  const renderWorkflow = () => {
+  const renderWorkflow = async () => {
     console.log('Rendering workflow with molecules:', canvasMolecules);
 
     // Ensure every molecule is part of a flow (has an incoming or outgoing connection)
