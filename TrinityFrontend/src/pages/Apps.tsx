@@ -115,6 +115,7 @@ const handleAppSelect = async (appId: string) => {
         });
         setAppMap(map);
         backendId = map[appId];
+        console.log('Mapped', appId, '->', backendId);
       } else {
         const text = await res.text();
         console.log('Failed to fetch apps for mapping:', text);
@@ -187,6 +188,9 @@ const handleAppSelect = async (appId: string) => {
       }
 
       navigate('/workflow');
+    } else {
+      const text = await res.text();
+      console.log('Project create error body:', text);
     }
   } catch (err) {
     console.log('Project create error', err);

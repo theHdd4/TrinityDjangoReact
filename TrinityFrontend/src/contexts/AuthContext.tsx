@@ -57,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await loadProfile();
           } else {
             setIsAuthenticated(false);
+            localStorage.removeItem('isAuthenticated');
             console.log('Session check failed', res.status);
           }
         })
