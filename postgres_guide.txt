@@ -21,5 +21,15 @@
    - When removing a user via the UI the row should disappear.
    - Use the same `SELECT` query to confirm.
 
-6. **Exit psql** with `\q` and then exit the container shell.
+6. **Use the pgAdmin web UI**
+   - The Docker compose stack includes a `pgadmin` service listening on port 5050.
+   - Start the services with `docker compose up -d` if not running.
+   - Open `http://localhost:5050` in your browser.
+   - Log in with **admin@example.com / admin** (default credentials).
+   - Add a new server connection named *Trinity* with:
+     - **Host**: `postgres`
+     - **Username** and **Password**: use the values from `.env`.
+   - Once connected you can browse databases, tables and run SQL queries from the web interface.
+
+7. **Exit psql** with `\q` and then exit the container shell if you used the CLI.
 

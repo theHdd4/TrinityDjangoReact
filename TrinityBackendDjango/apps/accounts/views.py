@@ -2,11 +2,19 @@ from django.contrib.auth import authenticate, login, logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, permissions, status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from .models import User, UserProfile
 from .serializers import UserSerializer, UserProfileSerializer
+
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    """Session authentication that bypasses CSRF checks."""
+
+    def enforce_csrf(self, request):
+        return  # Ignore CSRF for API views
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -17,6 +25,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get_permissions(self):
         if self.action in ("list", "create", "destroy"):
@@ -37,6 +46,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.select_related("user").all()
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get_queryset(self):
         user = self.request.user
@@ -64,6 +74,7 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
         logout(request)
