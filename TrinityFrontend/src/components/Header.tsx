@@ -159,6 +159,9 @@ const Header = () => {
             <DropdownMenuItem onSelect={() => navigate('/users')}>
               User Management
             </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => navigate('/clients')}>
+              Client Management
+            </DropdownMenuItem>
             <DropdownMenuItem disabled>Billing &amp; Plans</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={handleLogout}>Sign Out</DropdownMenuItem>

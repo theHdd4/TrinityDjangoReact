@@ -16,13 +16,14 @@ interface User {
   is_staff: boolean;
 }
 
-import { ACCOUNTS_API } from '@/lib/api';
+import { ACCOUNTS_API, TENANTS_API } from '@/lib/api';
 
 const API_BASE = ACCOUNTS_API;
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState({ username: '', password: '', email: '' });
+  const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
 
   const loadUsers = async () => {
     try {
@@ -36,8 +37,21 @@ const Users = () => {
     }
   };
 
+  const loadDomains = async () => {
+    try {
+      const res = await fetch(`${TENANTS_API}/domains/`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setAllowedDomains(data.map((d: any) => d.domain.toLowerCase()));
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   useEffect(() => {
     loadUsers();
+    loadDomains();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,6 +60,11 @@ const Users = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const domain = form.email.split('@')[1]?.toLowerCase();
+    if (domain && allowedDomains.length && !allowedDomains.includes(domain)) {
+      alert('Email domain not allowed');
+      return;
+    }
     try {
       const res = await fetch(`${API_BASE}/users/`, {
         method: 'POST',

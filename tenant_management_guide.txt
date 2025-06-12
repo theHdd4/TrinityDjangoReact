@@ -1,0 +1,38 @@
+Tenant & Client Management Guide
+===============================
+
+This guide explains how to manage tenant clients through the UI and verify the
+records in PostgreSQL.
+
+1. **Accessing the Clients page**
+   - Log in as an admin user (e.g. `harsha/harsha`).
+   - Click the profile icon in the header and choose **Client Management**.
+
+2. **Creating a client**
+   - Fill in the form with a unique name, schema name and email domain.
+   - Set optional limits for allowed users and projects, and select the apps
+     this tenant may use.
+   - Submit the form. The app calls `/api/tenants/tenants/` and automatically
+     creates the tenant, its domain, a default subscription plan and a config
+     entry recording allowed apps.
+   - A new schema is created thanks to Django‑Tenants' `auto_create_schema`.
+
+3. **Deleting a client**
+   - Click the trash icon next to a client. The tenant and all related records
+     are removed.
+
+4. **Verifying in PostgreSQL**
+   - Run `docker compose exec postgres psql -U $POSTGRES_USER $POSTGRES_DB`.
+   - Check the public tables:
+     - `SELECT schema_name, name FROM tenants_tenant;`
+     - `SELECT domain, tenant_id FROM tenants_domain;`
+     - `SELECT tenant_id FROM subscriptions_company;`
+     - `SELECT tenant_id, key, value FROM config_store_tenantconfig;`
+   - Each client should appear with its domain and configuration.
+
+5. **Restrictions**
+   - Users can only be added with an email that matches one of the registered
+     domains. The Users page validates this before sending the request.
+   - Projects created by a tenant's users reside in that tenant's schema and
+     cannot be accessed by users from other tenants.
+
