@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from django.utils import timezone
 from django_tenants.utils import schema_context
+from django.core.management import call_command
 from .models import Tenant, Domain
 from apps.subscriptions.models import Company, SubscriptionPlan
 from apps.config_store.models import TenantConfig
+from apps.registry.models import App
 
 
 class TenantSerializer(serializers.ModelSerializer):
@@ -39,8 +41,27 @@ class TenantSerializer(serializers.ModelSerializer):
         if domain:
             Domain.objects.create(domain=domain, tenant=tenant, is_primary=True)
 
-        # Use the tenant schema for tenant-specific tables
+        # Run migrations so tenant-specific tables exist
+        call_command(
+            "migrate_schemas",
+            "--schema",
+            tenant.schema_name,
+            interactive=False,
+            verbosity=0,
+        )
+
+        # Use the tenant schema for tenant-specific tables and default app seeds
         with schema_context(tenant.schema_name):
+            # Seed default app templates if not already present
+            default_apps = [
+                ("Marketing Mix Modeling", "marketing-mix", "Preset: Pre-process + Build"),
+                ("Forecasting Analysis", "forecasting", "Preset: Pre-process + Explore"),
+                ("Promo Effectiveness", "promo-effectiveness", "Preset: Explore + Build"),
+                ("Blank App", "blank", "Start from an empty canvas"),
+            ]
+            for name, slug, desc in default_apps:
+                App.objects.get_or_create(slug=slug, defaults={"name": name, "description": desc})
+
             if seats is not None or project_cap is not None:
                 company = Company.objects.create(tenant=tenant)
                 SubscriptionPlan.objects.create(
