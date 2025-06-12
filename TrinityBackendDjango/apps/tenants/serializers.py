@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.utils import timezone
 from django_tenants.utils import schema_context
 from django.core.management import call_command
+from django.db import transaction, connection
+import os
 import re
 from .models import Tenant, Domain
 from apps.subscriptions.models import Company, SubscriptionPlan
@@ -32,55 +34,53 @@ class TenantSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_on"]
 
     def create(self, validated_data):
+        """Create a new tenant using the same steps as create_tenant.py."""
         print("TenantSerializer.create called", validated_data)
+
         domain = validated_data.pop("domain", None)
         seats = validated_data.pop("seats_allowed", None)
         project_cap = validated_data.pop("project_cap", None)
         apps_allowed = validated_data.pop("apps_allowed", None)
 
-        # Normalize the schema name to a safe, lower-case value. Upper case
-        # characters or spaces cause Postgres to error when creating the schema
-        # and previously resulted in a 500 response when adding clients.
-        schema = validated_data.get("schema_name", "").lower().replace("-", "_")
-        schema = schema.replace(" ", "_")
+        schema = (
+            validated_data.get("schema_name", "")
+            .lower()
+            .replace("-", "_")
+            .replace(" ", "_")
+        )
         if not schema or not re.match(r"^[a-z][a-z0-9_]+$", schema):
             raise serializers.ValidationError({"schema_name": "Invalid schema name"})
         validated_data["schema_name"] = schema
 
-        try:
+        with transaction.atomic():
             tenant = Tenant.objects.create(**validated_data)
-            print("Tenant object created", tenant)
-        except Exception as exc:
-            print("Error creating Tenant:", exc)
-            raise
-
-        if domain:
-            print("Creating domain", domain)
-            try:
+            print("→ Created tenant", tenant)
+            if domain:
                 Domain.objects.create(domain=domain, tenant=tenant, is_primary=True)
-                print("Domain created")
-            except Exception as exc:
-                print("Error creating domain:", exc)
-                raise
+                print("→ Created primary domain", domain)
 
-        # Ensure the tenant schema and migrations are in place. The tenant
-        # model's `auto_create_schema` handles new schemas, but calling
-        # `create_schema` here guarantees migrations are applied even if the
-        # schema already existed.
-        print("Running create_schema for", tenant.schema_name)
-        try:
-            tenant.create_schema(check_if_exists=True, verbosity=0)
-            print("Schema created")
-        except Exception as exc:
-            print("Error running create_schema:", exc)
-            raise
+            primary_domain = os.getenv("PRIMARY_DOMAIN", "localhost")
+            for alias in ("localhost", "127.0.0.1"):
+                if alias != primary_domain and alias != domain:
+                    Domain.objects.get_or_create(domain=alias, tenant=tenant, defaults={"is_primary": False})
 
-        # Use the tenant schema for tenant-specific tables and default app seeds
-        print("Seeding defaults in schema", tenant.schema_name)
         try:
-            with schema_context(tenant.schema_name):
-                # Seed default app templates if not already present
-                default_apps = [
+            connection.set_schema_to_public()
+        except Exception:
+            pass
+
+        print("→ Applying tenant migrations for", tenant.schema_name)
+        call_command(
+            "migrate_schemas",
+            "--schema",
+            tenant.schema_name,
+            interactive=False,
+            verbosity=1,
+        )
+
+        print("→ Seeding default data")
+        with schema_context(tenant.schema_name):
+            default_apps = [
                 ("Marketing Mix Modeling", "marketing-mix", "Preset: Pre-process + Build"),
                 ("Forecasting Analysis", "forecasting", "Preset: Pre-process + Explore"),
                 ("Promo Effectiveness", "promo-effectiveness", "Preset: Explore + Build"),
@@ -88,8 +88,6 @@ class TenantSerializer(serializers.ModelSerializer):
             ]
             for name, slug, desc in default_apps:
                 App.objects.get_or_create(slug=slug, defaults={"name": name, "description": desc})
-                print("Ensured app template", slug)
-            print("Default apps ensured")
 
             if seats is not None or project_cap is not None:
                 company = Company.objects.create(tenant=tenant)
@@ -100,21 +98,11 @@ class TenantSerializer(serializers.ModelSerializer):
                     project_cap=project_cap or 0,
                     renewal_date=timezone.now().date(),
                 )
-                print("Subscription plan created")
 
             if apps_allowed:
-                TenantConfig.objects.create(
-                    tenant=tenant, key="apps_allowed", value=apps_allowed
-                )
-                print("Tenant config apps_allowed set")
-
-            print("Default data seeded")
-        except Exception as exc:
-            print("Error during tenant setup:", exc)
-            raise
+                TenantConfig.objects.create(tenant=tenant, key="apps_allowed", value=apps_allowed)
 
         print("Tenant creation complete")
-
         return tenant
 
 

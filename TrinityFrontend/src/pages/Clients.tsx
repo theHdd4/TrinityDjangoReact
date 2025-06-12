@@ -101,25 +101,25 @@ const Clients = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting tenant', form);
-    console.log('Posting to', `${TENANTS_API}/tenants/`);
+    const payload = {
+      name: form.name,
+      schema_name: form.schema_name,
+      domain: form.domain,
+      seats_allowed: Number(form.seats_allowed),
+      project_cap: Number(form.project_cap),
+      apps_allowed: form.apps_allowed,
+    };
+    console.log('Submitting tenant payload', payload);
     try {
       const res = await fetch(`${TENANTS_API}/tenants/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          name: form.name,
-          schema_name: form.schema_name,
-          domain: form.domain,
-          seats_allowed: Number(form.seats_allowed),
-          project_cap: Number(form.project_cap),
-          apps_allowed: form.apps_allowed,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
       console.log('Create tenant status', res.status);
-      const text = await res.text();
-      console.log('Create tenant body', text);
+      const body = await res.text();
+      console.log('Create tenant body', body);
       if (res.ok) {
         setForm({
           name: '',
@@ -129,9 +129,7 @@ const Clients = () => {
           project_cap: '',
           apps_allowed: [],
         });
-        await loadTenants();
-      } else {
-        console.log('Tenant creation failed with status', res.status);
+        loadTenants();
       }
     } catch (err) {
       console.log('Tenant creation error', err);

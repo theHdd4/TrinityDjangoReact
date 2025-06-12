@@ -1,0 +1,24 @@
+Add Tenant Guide
+================
+
+This project exposes a `/api/tenants/tenants/` endpoint for creating new clients (tenants). The logic now mirrors the `create_tenant.py` helper so any tenant created through the UI goes through the exact same steps.
+
+1. **How creation works**
+   - The frontend collects the tenant name, schema and domain and posts them to the API.
+   - `TenantSerializer.create` normalises the schema name and creates the `Tenant` and `Domain` records inside a transaction.
+   - Migrations for the new schema are applied using `migrate_schemas --schema <schema>` just like the setup script.
+   - Default app templates and subscription data are seeded inside the tenant schema.
+   - Alias domains for `localhost` and `127.0.0.1` are also registered so local requests map correctly.
+
+2. **Debugging failures**
+   - Check the web container logs: `docker compose logs -f web` while submitting the form. The serializer prints each step of the process.
+   - If migrations fail, rerun `docker compose exec web python create_tenant.py` to ensure the public schema and defaults are up to date.
+   - Ensure the domain you enter does not already exist in `tenants_domain`.
+   - Schema names must be lowercase letters, digits and underscores only.
+
+3. **Verifying**
+   - Connect to Postgres: `docker compose exec postgres psql -U $POSTGRES_USER $POSTGRES_DB`.
+   - Query `SELECT schema_name, name FROM tenants_tenant;` and `SELECT domain FROM tenants_domain;` to see your new tenant.
+   - Switch to the new schema using `SET search_path TO <schema>;` and inspect tables like `registry_app` to confirm defaults were seeded.
+
+Creating tenants through the UI now follows the exact procedure proven by `create_tenant.py`, ensuring reliable schema setup and data seeding.
