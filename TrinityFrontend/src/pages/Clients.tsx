@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { TENANTS_API, REGISTRY_API } from '@/lib/api';
+console.log('TENANTS_API', TENANTS_API);
+console.log('REGISTRY_API', REGISTRY_API);
 
 interface Tenant {
   id: number;
@@ -39,6 +41,7 @@ const Clients = () => {
       console.log('Load tenants status', res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log('Tenants data', data);
         // fetch first domain for each tenant
         const domainsRes = await fetch(`${TENANTS_API}/domains/`, {
           credentials: 'include',
@@ -47,6 +50,7 @@ const Clients = () => {
         console.log('Domains fetch status', domainsRes.status);
         if (domainsRes.ok) {
           domains = await domainsRes.json();
+          console.log('Domains data', domains);
         } else {
           console.log('Domains fetch error', await domainsRes.text());
         }
@@ -68,7 +72,9 @@ const Clients = () => {
       const res = await fetch(`${REGISTRY_API}/apps/`, { credentials: 'include' });
       console.log('Load apps status', res.status);
       if (res.ok) {
-        setApps(await res.json());
+        const appsData = await res.json();
+        console.log('Apps data', appsData);
+        setApps(appsData);
       }
     } catch {
       console.log('Load apps error');
@@ -76,6 +82,7 @@ const Clients = () => {
   };
 
   useEffect(() => {
+    console.log('Clients page mounted');
     loadTenants();
     loadApps();
   }, []);
@@ -95,6 +102,7 @@ const Clients = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Submitting tenant', form);
+    console.log('Posting to', `${TENANTS_API}/tenants/`);
     try {
       const res = await fetch(`${TENANTS_API}/tenants/`, {
         method: 'POST',
@@ -122,6 +130,8 @@ const Clients = () => {
           apps_allowed: [],
         });
         await loadTenants();
+      } else {
+        console.log('Tenant creation failed with status', res.status);
       }
     } catch (err) {
       console.log('Tenant creation error', err);
@@ -135,6 +145,7 @@ const Clients = () => {
         method: 'DELETE',
         credentials: 'include',
       });
+      console.log('Delete tenant status', res.status);
       if (res.ok) {
         await loadTenants();
       }

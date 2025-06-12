@@ -1,4 +1,5 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from apps.accounts.views import CsrfExemptSessionAuthentication
@@ -18,7 +19,17 @@ class TenantViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         print('TenantViewSet.create called with', request.data)
-        return super().create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            print('Tenant data validated')
+            self.perform_create(serializer)
+            print('Tenant instance created')
+        except Exception as exc:
+            print('Tenant creation failed:', exc)
+            raise
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):

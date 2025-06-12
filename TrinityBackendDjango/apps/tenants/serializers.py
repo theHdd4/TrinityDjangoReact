@@ -49,21 +49,31 @@ class TenantSerializer(serializers.ModelSerializer):
 
         try:
             tenant = Tenant.objects.create(**validated_data)
+            print("Tenant object created", tenant)
         except Exception as exc:
             print("Error creating Tenant:", exc)
             raise
 
         if domain:
             print("Creating domain", domain)
-            Domain.objects.create(domain=domain, tenant=tenant, is_primary=True)
+            try:
+                Domain.objects.create(domain=domain, tenant=tenant, is_primary=True)
+                print("Domain created")
+            except Exception as exc:
+                print("Error creating domain:", exc)
+                raise
 
         # Ensure the tenant schema and migrations are in place. The tenant
         # model's `auto_create_schema` handles new schemas, but calling
         # `create_schema` here guarantees migrations are applied even if the
         # schema already existed.
         print("Running create_schema for", tenant.schema_name)
-        tenant.create_schema(check_if_exists=True, verbosity=0)
-        print("Schema created")
+        try:
+            tenant.create_schema(check_if_exists=True, verbosity=0)
+            print("Schema created")
+        except Exception as exc:
+            print("Error running create_schema:", exc)
+            raise
 
         # Use the tenant schema for tenant-specific tables and default app seeds
         print("Seeding defaults in schema", tenant.schema_name)
@@ -78,6 +88,7 @@ class TenantSerializer(serializers.ModelSerializer):
             ]
             for name, slug, desc in default_apps:
                 App.objects.get_or_create(slug=slug, defaults={"name": name, "description": desc})
+                print("Ensured app template", slug)
             print("Default apps ensured")
 
             if seats is not None or project_cap is not None:
@@ -96,6 +107,8 @@ class TenantSerializer(serializers.ModelSerializer):
                     tenant=tenant, key="apps_allowed", value=apps_allowed
                 )
                 print("Tenant config apps_allowed set")
+
+            print("Default data seeded")
         except Exception as exc:
             print("Error during tenant setup:", exc)
             raise
