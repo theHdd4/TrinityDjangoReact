@@ -36,6 +36,7 @@ const Clients = () => {
       const res = await fetch(`${TENANTS_API}/tenants/`, {
         credentials: 'include',
       });
+      console.log('Load tenants status', res.status);
       if (res.ok) {
         const data = await res.json();
         // fetch first domain for each tenant
@@ -43,8 +44,11 @@ const Clients = () => {
           credentials: 'include',
         });
         let domains: any[] = [];
+        console.log('Domains fetch status', domainsRes.status);
         if (domainsRes.ok) {
           domains = await domainsRes.json();
+        } else {
+          console.log('Domains fetch error', await domainsRes.text());
         }
         setTenants(
           data.map((t: any) => ({
@@ -55,18 +59,19 @@ const Clients = () => {
         );
       }
     } catch {
-      /* ignore */
+      console.log('Load tenants error');
     }
   };
 
   const loadApps = async () => {
     try {
       const res = await fetch(`${REGISTRY_API}/apps/`, { credentials: 'include' });
+      console.log('Load apps status', res.status);
       if (res.ok) {
         setApps(await res.json());
       }
     } catch {
-      /* ignore */
+      console.log('Load apps error');
     }
   };
 
@@ -89,6 +94,7 @@ const Clients = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting tenant', form);
     try {
       const res = await fetch(`${TENANTS_API}/tenants/`, {
         method: 'POST',
@@ -103,6 +109,9 @@ const Clients = () => {
           apps_allowed: form.apps_allowed,
         }),
       });
+      console.log('Create tenant status', res.status);
+      const text = await res.text();
+      console.log('Create tenant body', text);
       if (res.ok) {
         setForm({
           name: '',
@@ -114,8 +123,8 @@ const Clients = () => {
         });
         await loadTenants();
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.log('Tenant creation error', err);
     }
   };
 

@@ -16,6 +16,10 @@ class TenantViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [CsrfExemptSessionAuthentication]
 
+    def create(self, request, *args, **kwargs):
+        print('TenantViewSet.create called with', request.data)
+        return super().create(request, *args, **kwargs)
+
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):
             return [permissions.IsAdminUser()]
