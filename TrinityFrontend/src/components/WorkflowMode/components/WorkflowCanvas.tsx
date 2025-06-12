@@ -16,6 +16,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import MoleculeNode, { MoleculeNodeData } from './MoleculeNode';
+import { REGISTRY_API } from '@/lib/api';
 
 interface WorkflowCanvasProps {
   onMoleculeSelect: (moleculeId: string) => void;
