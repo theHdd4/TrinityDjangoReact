@@ -18,18 +18,25 @@ class TenantViewSet(viewsets.ModelViewSet):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def create(self, request, *args, **kwargs):
-        print('TenantViewSet.create called with', request.data)
+        print("TenantViewSet.create called with", request.data)
         serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print("Tenant validation errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        print("Tenant data validated, saving…")
         try:
-            serializer.is_valid(raise_exception=True)
-            print('Tenant data validated')
             self.perform_create(serializer)
-            print('Tenant instance created')
+            print("Tenant instance created successfully")
         except Exception as exc:
-            print('Tenant creation failed:', exc)
+            print("Tenant creation failed during perform_create:", exc)
             raise
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        print("TenantViewSet.perform_create start")
+        instance = serializer.save()
+        print("TenantViewSet.perform_create saved", instance)
 
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):
@@ -46,6 +53,10 @@ class DomainViewSet(viewsets.ModelViewSet):
     serializer_class = DomainSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def create(self, request, *args, **kwargs):
+        print("DomainViewSet.create called with", request.data)
+        return super().create(request, *args, **kwargs)
 
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):

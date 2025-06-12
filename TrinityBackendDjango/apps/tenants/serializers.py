@@ -60,6 +60,7 @@ class TenantSerializer(serializers.ModelSerializer):
                 print("→ Created primary domain", domain)
 
             primary_domain = os.getenv("PRIMARY_DOMAIN", "localhost")
+            print("→ PRIMARY_DOMAIN is", primary_domain)
             for alias in ("localhost", "127.0.0.1"):
                 if alias != primary_domain and alias != domain:
                     Domain.objects.get_or_create(domain=alias, tenant=tenant, defaults={"is_primary": False})
@@ -87,20 +88,23 @@ class TenantSerializer(serializers.ModelSerializer):
                 ("Blank App", "blank", "Start from an empty canvas"),
             ]
             for name, slug, desc in default_apps:
-                App.objects.get_or_create(slug=slug, defaults={"name": name, "description": desc})
+                obj, _ = App.objects.get_or_create(slug=slug, defaults={"name": name, "description": desc})
+                print("→ Ensured app", slug, obj.id)
 
             if seats is not None or project_cap is not None:
                 company = Company.objects.create(tenant=tenant)
-                SubscriptionPlan.objects.create(
+                plan = SubscriptionPlan.objects.create(
                     company=company,
                     plan_name="Default",
                     seats_allowed=seats or 0,
                     project_cap=project_cap or 0,
                     renewal_date=timezone.now().date(),
                 )
+                print("→ Created subscription plan", plan.id)
 
             if apps_allowed:
-                TenantConfig.objects.create(tenant=tenant, key="apps_allowed", value=apps_allowed)
+                cfg = TenantConfig.objects.create(tenant=tenant, key="apps_allowed", value=apps_allowed)
+                print("→ Set apps_allowed", cfg.value)
 
         print("Tenant creation complete")
         return tenant
