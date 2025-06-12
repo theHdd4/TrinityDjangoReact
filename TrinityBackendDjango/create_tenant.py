@@ -79,21 +79,26 @@ def main():
 
     # Seed default App templates if none exist
     from apps.registry.models import App
+    from django_tenants.utils import schema_context
+
     default_apps = [
         ("Marketing Mix Modeling", "marketing-mix", "Preset: Pre-process + Build"),
         ("Forecasting Analysis", "forecasting", "Preset: Pre-process + Explore"),
         ("Promo Effectiveness", "promo-effectiveness", "Preset: Explore + Build"),
         ("Blank App", "blank", "Start from an empty canvas"),
     ]
-    for name, slug, desc in default_apps:
-        obj, created = App.objects.get_or_create(
-            slug=slug,
-            defaults={"name": name, "description": desc},
-        )
-        if created:
-            print(f"   → Created App template '{name}'")
-        else:
-            print(f"   → App template '{name}' already exists")
+
+    # Ensure we're operating within the tenant schema when seeding data
+    with schema_context(tenant_schema):
+        for name, slug, desc in default_apps:
+            obj, created = App.objects.get_or_create(
+                slug=slug,
+                defaults={"name": name, "description": desc},
+            )
+            if created:
+                print(f"   → Created App template '{name}'")
+            else:
+                print(f"   → App template '{name}' already exists")
 
     print("All done! Tenant and all tables created.\n")
 
