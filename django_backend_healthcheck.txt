@@ -29,3 +29,6 @@
    - Inspect the Domains table to verify `localhost` and `127.0.0.1` exist:
      `docker compose exec web python manage.py shell -c "from apps.tenants.models import Domain; print(Domain.objects.all())"`
    - If a domain is missing, rerun `create_tenant.py` or add it manually.
+9. **Automated check script**
+   - Run `./backend_check.sh` from the repo root. It verifies port 8000 is reachable and sends a test login request.
+   - Adjust host/port if needed: `./backend_check.sh 127.0.0.1 8000 username password`.
