@@ -147,16 +147,18 @@ const handleAppSelect = async (appId: string) => {
       const ids = templates[appId] || [];
       let layout: any[] = [];
       if (ids.length > 0) {
+        const timestamp = Date.now();
         layout = ids
           .map((id, index) => {
             const info = molecules.find(m => m.id === id);
             if (!info) return null;
             const selectedAtoms: Record<string, boolean> = {};
-            info.atoms.forEach(atom => {
-              selectedAtoms[atom] = false;
+            info.atoms.forEach((atom, aIdx) => {
+              // Default select the first two atoms
+              selectedAtoms[atom] = aIdx < 2;
             });
             return {
-              id: `${id}-${Date.now()}-${index}`,
+              id: `${id}-${timestamp}-${index}`,
               type: info.type,
               title: info.title,
               subtitle: info.subtitle,
@@ -169,6 +171,12 @@ const handleAppSelect = async (appId: string) => {
             };
           })
           .filter(Boolean) as any[];
+
+        // Connect molecules sequentially in the given order
+        for (let i = 0; i < layout.length - 1; i++) {
+          layout[i].connections.push({ target: layout[i + 1].id });
+        }
+
         localStorage.setItem('workflow-canvas-molecules', safeStringify(layout));
       } else {
         localStorage.removeItem('workflow-canvas-molecules');
