@@ -1,9 +1,12 @@
 from rest_framework import viewsets, permissions
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from apps.accounts.views import CsrfExemptSessionAuthentication
 from .models import Tenant, Domain
 from .serializers import TenantSerializer, DomainSerializer
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class TenantViewSet(viewsets.ModelViewSet):
     """
     Manage tenants (schemas). Admin-only for writes; all authenticated may list/retrieve.
@@ -19,6 +22,7 @@ class TenantViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class DomainViewSet(viewsets.ModelViewSet):
     """
     Manage domain mappings for tenants. Admin-only for writes; authenticated users may list/retrieve.
