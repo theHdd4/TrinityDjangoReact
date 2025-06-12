@@ -7,6 +7,8 @@ import { ArrowLeft, Zap, BarChart3, Target, Plus, ChevronLeft, ChevronRight } fr
 import Header from '@/components/Header';
 import AppCard from '@/components/AppList/AppCard';
 import { REGISTRY_API } from '@/lib/api';
+import { molecules } from '@/components/MoleculeList/data/molecules';
+import { safeStringify } from '@/utils/safeStringify';
 
 interface BackendApp {
   id: number;
@@ -17,6 +19,13 @@ const Apps = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [appMap, setAppMap] = useState<Record<string, number>>({});
+
+  const templates: Record<string, string[]> = {
+    forecasting: ['explore', 'build'],
+    'marketing-mix': ['data-pre-process', 'explore'],
+    'promo-effectiveness': ['data-pre-process', 'build'],
+    blank: []
+  };
 
   const loadApps = async () => {
     try {
@@ -82,6 +91,7 @@ const handleAppSelect = async (appId: string) => {
   const template = apps.find((app) => app.id === appId);
   if (!template) return;
   const name = template.title;
+  console.log('App selected', appId);
 
   // Ensure we have a mapping from slug to backend ID
   let backendId = appMap[appId];
@@ -119,6 +129,34 @@ const handleAppSelect = async (appId: string) => {
     if (res.ok) {
       const project = await res.json();
       localStorage.setItem('current-project', JSON.stringify(project));
+      const ids = templates[appId] || [];
+      if (ids.length > 0) {
+        const layout = ids
+          .map((id, index) => {
+            const info = molecules.find(m => m.id === id);
+            if (!info) return null;
+            const selectedAtoms: Record<string, boolean> = {};
+            info.atoms.forEach(atom => {
+              selectedAtoms[atom] = false;
+            });
+            return {
+              id: `${id}-${Date.now()}-${index}`,
+              type: info.type,
+              title: info.title,
+              subtitle: info.subtitle,
+              tag: info.tag,
+              atoms: info.atoms,
+              position: { x: 100 + index * 250, y: 100 },
+              connections: [],
+              selectedAtoms,
+              atomOrder: [...info.atoms]
+            };
+          })
+          .filter(Boolean);
+        localStorage.setItem('workflow-canvas-molecules', safeStringify(layout));
+      } else {
+        localStorage.removeItem('workflow-canvas-molecules');
+      }
       navigate('/workflow');
     }
   } catch {
