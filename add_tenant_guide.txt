@@ -1,0 +1,19 @@
+Add Tenant Guide
+================
+
+The Clients page lets an admin create new tenants through `/api/tenants/tenants/`.
+Each tenant has a unique name, schema name and primary domain.
+
+1. Fill out the form on the Clients page and submit. The frontend posts the
+   three fields (`name`, `schema_name`, `domain`) to the API.
+2. `TenantSerializer.create` creates the `Tenant` and its `Domain` inside a
+   transaction. The schema is normalised to lowercase with underscores.
+3. The serializer then calls `create_schema()` and runs tenant migrations so the
+   new schema is ready for use.
+4. After creation you can see the tenant listed on the page. The domain is
+   fetched from the Domains API.
+
+If something fails check the web container logs with
+`docker compose logs -f web`. You can also rerun
+`docker compose exec web python create_tenant.py` to make sure migrations are up
+ to date.

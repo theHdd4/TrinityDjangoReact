@@ -16,6 +16,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import MoleculeNode, { MoleculeNodeData } from './MoleculeNode';
+import { REGISTRY_API } from '@/lib/api';
 
 interface WorkflowCanvasProps {
   onMoleculeSelect: (moleculeId: string) => void;
@@ -128,9 +129,8 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   // Load saved workflow on mount
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    const loadFromLayout = (molecules: any[]) => {
       try {
-        const molecules = JSON.parse(stored);
         const loadedNodes: Node<MoleculeNodeData>[] = molecules.map((m: any) => ({
           id: m.id,
           type: 'molecule',
@@ -166,7 +166,31 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         setNodes(loadedNodes);
         setEdges(loadedEdges);
       } catch (e) {
+        console.error('Failed to parse workflow layout', e);
+      }
+    };
+
+    if (stored) {
+      try {
+        loadFromLayout(JSON.parse(stored));
+      } catch (e) {
         console.error('Failed to load workflow from storage', e);
+      }
+    } else {
+      const current = localStorage.getItem('current-project');
+      if (current) {
+        fetch(`${REGISTRY_API}/projects/${JSON.parse(current).id}/`, {
+          credentials: 'include'
+        })
+          .then(res => (res.ok ? res.json() : null))
+          .then(data => {
+            if (data && data.state && data.state.workflow_canvas) {
+              const layout = data.state.workflow_canvas;
+              localStorage.setItem(STORAGE_KEY, safeStringify(layout));
+              loadFromLayout(layout);
+            }
+          })
+          .catch(() => {});
       }
     }
   }, []);

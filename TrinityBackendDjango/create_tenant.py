@@ -2,59 +2,43 @@
 import os
 import django
 from django.core.management import call_command
-from django.db import transaction, connection
+from django.db import transaction
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-# Adjust this import path if your app label is different:
 from apps.tenants.models import Tenant, Domain
+from django.contrib.auth import get_user_model
+
 
 def main():
     tenant_name = "acme_corp"
     tenant_schema = "acme_corp_schema"
-    primary_domain = "acme.example.com"
+    primary_domain = os.getenv("PRIMARY_DOMAIN", "localhost")
 
-    print("\n→ 1) Applying SHARED (public) migrations…")
-    # Run only shared apps into the public schema
-    # Ensure the connection points to the public schema before migrating
-    try:
-        connection.set_schema_to_public()
-    except Exception:
-        pass
-    call_command("migrate_schemas", "--shared", interactive=False, verbosity=1)
-    print("   ✅ Shared migrations complete.\n")
+    print("\n→ Applying shared migrations…")
+    call_command("migrate_schemas", "--shared", interactive=False, verbosity=0)
+
+    User = get_user_model()
+    if not User.objects.filter(username="harsha").exists():
+        User.objects.create_superuser(username="harsha", password="harsha", email="")
+        print("Created default admin 'harsha'")
 
     with transaction.atomic():
-        # 2a) Create (or get) the Tenant row in public
-        tenant_obj, created = Tenant.objects.get_or_create(
+        tenant, _ = Tenant.objects.get_or_create(
             schema_name=tenant_schema,
             defaults={"name": tenant_name},
         )
-        if created:
-            print(f"→ 2) Created Tenant: {tenant_obj}")
-        else:
-            print(f"→ 2) Tenant already existed: {tenant_obj}")
+        # ensure schema auto-creation is enabled then save
+        tenant.auto_create_schema = True
+        tenant.save()
 
-        # 2b) Create its primary Domain in public
-        domain_obj, domain_created = Domain.objects.get_or_create(
-            domain=primary_domain,
-            tenant=tenant_obj,
-            defaults={"is_primary": True},
-        )
-        if domain_created:
-            print(f"   → Created Domain: {domain_obj}")
-        else:
-            print(f"   → Domain already existed: {domain_obj}")
-    print()
+        Domain.objects.get_or_create(domain=primary_domain, tenant=tenant, defaults={"is_primary": True})
 
-    print(f"→ 3) Running TENANT-SCHEMA migrations for '{tenant_schema}'…")
-    # Switch into the tenant schema and apply all tenant apps there
-    # `migrate_schemas` expects the schema name via the --schema flag.
-    call_command("migrate_schemas", "--schema", tenant_schema, interactive=False, verbosity=1)
-    print("   ✅ Tenant-schema migrations complete.\n")
+    print("\n→ Applying tenant migrations…")
+    call_command("migrate_schemas", "--schema", tenant_schema, interactive=False, verbosity=0)
+    print("Tenant setup complete.")
 
-    print("All done! Tenant and all tables created.\n")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,40 @@
+# Checking PostgreSQL for Trinity
+
+1. **Locate the database credentials**
+   - Open `TrinityBackendDjango/.env` (copy from `.env.example` if missing).
+   - Note `POSTGRES_DB`, `POSTGRES_USER` and `POSTGRES_PASSWORD`.
+
+2. **Connect to the database container**
+   - Start the stack with `docker compose up -d` if not already running.
+   - Access the shell: `docker compose exec postgres bash`.
+
+3. **Use psql to inspect users**
+   - Run `psql -U $POSTGRES_USER $POSTGRES_DB` inside the container.
+   - List tables with `\dt` and check the `accounts_user` table.
+   - To see all users: `SELECT id, username, email, is_staff FROM accounts_user;`.
+
+4. **Verify added users**
+   - After creating a user through the React UI, rerun the `SELECT` query.
+   - The new row should appear with the provided username and email.
+
+5. **Verify deletions**
+   - When removing a user via the UI the row should disappear.
+   - Use the same `SELECT` query to confirm.
+
+6. **Use the pgAdmin web UI**
+   - The Docker compose stack includes a `pgadmin` service listening on port 5050.
+   - Start the services with `docker compose up -d` if not running.
+   - Open `http://localhost:5050` in your browser.
+   - Log in with **admin@example.com / admin** (default credentials).
+   - Add a new server connection named *Trinity* with:
+     - **Host**: `postgres`
+     - **Username** and **Password**: use the values from `.env`.
+   - Once connected you can browse databases, tables and run SQL queries from the web interface.
+
+7. **Direct psql from host**
+   - If you have `psql` installed locally you can connect without entering the container:
+     `psql -h localhost -p 5432 -U $POSTGRES_USER $POSTGRES_DB`
+   - Run queries just like inside the container, e.g. `SELECT COUNT(*) FROM accounts_user;`.
+
+8. **Exit psql** with `\q` and then exit the container shell if you used the CLI.
+

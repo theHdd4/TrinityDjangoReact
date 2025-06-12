@@ -24,11 +24,14 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
+    console.log('Submitting login form for', username);
+
     const success = await login(username, password);
     if (success) {
       navigate('/projects');
     } else {
       setError('Invalid credentials.');
+      console.log('Login failed for', username);
     }
 
     setIsLoading(false);
@@ -128,7 +131,7 @@ const Login = () => {
 
             <div className="text-center">
               <p className="text-black text-xs font-mono">
-                Demo Credentials: username / password
+                Demo Credentials: harsha / harsha
               </p>
             </div>
           </CardContent>

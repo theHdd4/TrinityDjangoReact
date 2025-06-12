@@ -14,12 +14,18 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, FolderOpen, Calendar, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/Header';
+import { REGISTRY_API } from '@/lib/api';
+import { safeStringify } from '@/utils/safeStringify';
 
 interface Project {
-  id: string;
+  id: number;
   name: string;
-  lastModified: Date;
-  description?: string;
+  slug: string;
+  description: string;
+  app: number;
+  state?: Record<string, unknown> | null;
+  updated_at: string;
+  lastModified?: Date;
 }
 
 const Projects = () => {
@@ -27,16 +33,24 @@ const Projects = () => {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    // Load saved projects from localStorage
-    const savedProjects = localStorage.getItem('trinity-projects');
-    if (savedProjects) {
-      const parsedProjects = JSON.parse(savedProjects);
-      setProjects(parsedProjects.map((p: any) => ({
-        ...p,
-        lastModified: new Date(p.lastModified)
-      })));
+  const loadProjects = async () => {
+    try {
+      const res = await fetch(`${REGISTRY_API}/projects/`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        const parsed = data.map((p: Project) => ({
+          ...p,
+          lastModified: new Date(p.updated_at)
+        }));
+        setProjects(parsed);
+      }
+    } catch {
+      /* ignore */
     }
+  };
+
+  useEffect(() => {
+    loadProjects();
   }, []);
 
   const createNewProject = () => {
@@ -44,15 +58,50 @@ const Projects = () => {
     navigate('/apps');
   };
 
-  const openProject = (project: Project) => {
-    // Set current project and navigate to main app
+  const openProject = async (project: Project) => {
     localStorage.setItem('current-project', JSON.stringify(project));
-    navigate('/');
+    try {
+      const res = await fetch(`${REGISTRY_API}/projects/${project.id}/`, {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state && data.state.workflow_canvas) {
+          localStorage.setItem(
+            'workflow-canvas-molecules',
+            safeStringify(data.state.workflow_canvas)
+          );
+        } else {
+          localStorage.removeItem('workflow-canvas-molecules');
+        }
+        if (data.state && data.state.workflow_selected_atoms) {
+          localStorage.setItem(
+            'workflow-selected-atoms',
+            safeStringify(data.state.workflow_selected_atoms)
+          );
+        }
+        if (data.state && data.state.laboratory_config) {
+          localStorage.setItem(
+            'laboratory-config',
+            safeStringify(data.state.laboratory_config)
+          );
+          if (data.state.laboratory_config.cards) {
+            localStorage.setItem(
+              'laboratory-layout-cards',
+              safeStringify(data.state.laboratory_config.cards)
+            );
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    navigate('/workflow');
   };
 
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const startRename = (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
@@ -61,25 +110,34 @@ const Projects = () => {
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  const saveRename = () => {
+  const saveRename = async () => {
     if (!editingId) return;
     const trimmed = editingName.trim();
     if (!trimmed) {
       setEditingId(null);
       return;
     }
-    const updated = projects.map((p) =>
-      p.id === editingId ? { ...p, name: trimmed } : p
-    );
-    setProjects(updated);
-    localStorage.setItem('trinity-projects', JSON.stringify(updated));
+    try {
+      await fetch(`${REGISTRY_API}/projects/${editingId}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: trimmed, slug: trimmed.toLowerCase().replace(/\s+/g, '-') }),
+      });
+      await loadProjects();
+    } catch {
+      /* ignore */
+    }
     setEditingId(null);
   };
 
-  const deleteProject = (id: string) => {
-    const updated = projects.filter((p) => p.id !== id);
-    setProjects(updated);
-    localStorage.setItem('trinity-projects', JSON.stringify(updated));
+  const deleteProject = async (id: number) => {
+    try {
+      await fetch(`${REGISTRY_API}/projects/${id}/`, { method: 'DELETE', credentials: 'include' });
+      await loadProjects();
+    } catch {
+      /* ignore */
+    }
     setDeleteId(null);
   };
 

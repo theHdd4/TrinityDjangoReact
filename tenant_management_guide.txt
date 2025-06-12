@@ -1,0 +1,25 @@
+Tenant & Client Management Guide
+===============================
+
+Admins can manage tenants from the **Client Management** page.
+
+1. **Open the page**
+   - Log in as an admin (e.g. `harsha/harsha`).
+   - Click the profile icon and choose *Client Management*.
+
+2. **Create a tenant**
+   - Enter a name, schema name and email domain.
+   - Submit the form. The backend creates the tenant, its domain and applies
+     migrations for the new schema.
+
+3. **Delete a tenant**
+   - Use the trash icon next to a client to remove it. This deletes the tenant
+     and its schema from the database.
+
+4. **Verify using psql**
+   - `docker compose exec postgres psql -U $POSTGRES_USER $POSTGRES_DB`
+   - `SELECT schema_name, name FROM tenants_tenant;`
+   - `SELECT domain, tenant_id FROM tenants_domain;`
+
+Only users whose email domain matches a registered tenant domain may be added via
+ the Users page.

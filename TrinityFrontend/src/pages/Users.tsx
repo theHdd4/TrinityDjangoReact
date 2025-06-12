@@ -3,6 +3,7 @@ import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 
 interface User {
   id: number;
@@ -12,14 +13,17 @@ interface User {
   last_name: string;
   mfa_enabled: boolean;
   preferences: Record<string, unknown> | null;
+  is_staff: boolean;
 }
 
-const API_BASE = import.meta.env.VITE_ACCOUNTS_API ||
-  'http://localhost:8000/api/accounts';
+import { ACCOUNTS_API, TENANTS_API } from '@/lib/api';
+
+const API_BASE = ACCOUNTS_API;
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState({ username: '', password: '', email: '' });
+  const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
 
   const loadUsers = async () => {
     try {
@@ -33,8 +37,21 @@ const Users = () => {
     }
   };
 
+  const loadDomains = async () => {
+    try {
+      const res = await fetch(`${TENANTS_API}/domains/`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setAllowedDomains(data.map((d: any) => d.domain.toLowerCase()));
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   useEffect(() => {
     loadUsers();
+    loadDomains();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +60,11 @@ const Users = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const domain = form.email.split('@')[1]?.toLowerCase();
+    if (domain && allowedDomains.length && !allowedDomains.includes(domain)) {
+      alert('Email domain not allowed');
+      return;
+    }
     try {
       const res = await fetch(`${API_BASE}/users/`, {
         method: 'POST',
@@ -52,6 +74,21 @@ const Users = () => {
       });
       if (res.ok) {
         setForm({ username: '', password: '', email: '' });
+        await loadUsers();
+      }
+    } catch {
+      /* ignore errors for demo */
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Delete user?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/users/${id}/`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (res.ok) {
         await loadUsers();
       }
     } catch {
@@ -101,8 +138,11 @@ const Users = () => {
           <CardContent>
             <ul className="space-y-2">
               {users.map((u) => (
-                <li key={u.id} className="border-b pb-1 last:border-none">
-                  {u.username} – {u.email}
+                <li key={u.id} className="border-b pb-1 last:border-none flex justify-between items-center">
+                  <span>{u.username} – {u.email}</span>
+                  <button onClick={() => handleDelete(u.id)} className="text-red-600 hover:text-red-800">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </li>
               ))}
             </ul>

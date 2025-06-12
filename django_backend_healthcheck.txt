@@ -1,0 +1,36 @@
+1. **Start the backend**
+   - Navigate to `TrinityBackendDjango`.
+   - Run `docker compose up -d` to start Postgres, Redis, Mongo and the `web` service.
+   - Ensure `.env` sets `PRIMARY_DOMAIN=localhost` so requests for `localhost` or `127.0.0.1` map to a tenant.
+2. **Verify containers are running**
+   - Execute `docker compose ps` and ensure the `web` container shows `0.0.0.0:8000->8000/tcp`.
+3. **Check the login endpoint**
+   - Run `curl -i http://localhost:8000/api/accounts/login/`.
+   - You should see a `405` method not allowed response when using GET/HEAD which confirms the endpoint exists.
+   - On Windows PowerShell, use `curl.exe` instead of `curl` so the command resolves correctly.
+   - To test authentication, send a POST request:
+     `curl -i -X POST http://localhost:8000/api/accounts/login/ \
+       -H 'Content-Type: application/json' \
+       -d '{"username": "harsha", "password": "harsha"}'`
+   - The response should contain `Set-Cookie` headers and user information in JSON.
+4. **Inspect CORS headers**
+   - The response to the above POST should include `Access-Control-Allow-Origin`.
+     If not present, set `CORS_ALLOW_ALL=true` in `.env` and restart the web service
+     to disable origin checks during development.
+5. **Check application logs**
+   - Use `docker compose logs -f web` to view Django logs and confirm requests are processed.
+6. **Validate the demo user**
+   - `docker compose exec web python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(username='harsha'))"`
+   - This should print the `harsha` user record.
+7. **Check a custom superuser**
+   - Verify your superuser (e.g. `HDD`) exists using:
+     `docker compose exec web python manage.py shell -c "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(username='HDD'))"`
+   - If no user is returned, recreate it with `docker compose exec web python manage.py createsuperuser`.
+
+8. **Confirm the domain**
+   - Inspect the Domains table to verify `localhost` and `127.0.0.1` exist:
+     `docker compose exec web python manage.py shell -c "from apps.tenants.models import Domain; print(Domain.objects.all())"`
+   - If a domain is missing, rerun `create_tenant.py` or add it manually.
+9. **Automated check script**
+   - Run `./backend_check.sh` from the repo root. It verifies port 8000 is reachable and sends a test login request.
+   - Adjust host/port if needed: `./backend_check.sh 127.0.0.1 8000 username password`.

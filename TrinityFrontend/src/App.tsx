@@ -15,6 +15,7 @@ import Laboratory from "./pages/Laboratory";
 import Exhibition from "./pages/Exhibition";
 import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
+import Clients from "./pages/Clients";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,11 @@ const App = () => (
             <Route path="/users" element={
               <ProtectedRoute>
                 <Users />
+              </ProtectedRoute>
+            } />
+            <Route path="/clients" element={
+              <ProtectedRoute>
+                <Clients />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

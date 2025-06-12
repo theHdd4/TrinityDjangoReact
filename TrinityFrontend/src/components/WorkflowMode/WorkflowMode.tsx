@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import WorkflowCanvas from './components/WorkflowCanvas';
 import MoleculeList from '@/components/MoleculeList/MoleculeList';
 import { useToast } from '@/hooks/use-toast';
+import { REGISTRY_API } from '@/lib/api';
 
 interface SelectedAtom {
   atomName: string;
@@ -30,7 +31,7 @@ const WorkflowMode = () => {
     setCanvasMolecules(molecules);
   }, []);
 
-  const renderWorkflow = () => {
+  const renderWorkflow = async () => {
     console.log('Rendering workflow with molecules:', canvasMolecules);
 
     // Ensure every molecule is part of a flow (has an incoming or outgoing connection)
@@ -117,6 +118,23 @@ const WorkflowMode = () => {
     // Persist selected atoms for Laboratory mode and clear previous layout
     localStorage.setItem('workflow-selected-atoms', safeStringify(selectedAtoms));
     localStorage.removeItem('laboratory-layout-cards');
+
+    const current = localStorage.getItem('current-project');
+    if (current) {
+      try {
+        const proj = JSON.parse(current);
+        await fetch(`${REGISTRY_API}/projects/${proj.id}/`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            state: { workflow_selected_atoms: selectedAtoms },
+          }),
+        });
+      } catch {
+        /* ignore */
+      }
+    }
 
     toast({
       title: 'Workflow Rendered',

@@ -2,6 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, User, Bell, Search, LogOut } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AnimatedLogo from '@/components/AnimatedLogo';
@@ -10,7 +19,7 @@ import BackToAppsIcon from '@/components/icons/BackToAppsIcon';
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user, profile } = useAuth();
   const [projectName, setProjectName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -121,21 +130,43 @@ const Header = () => {
           <Settings className="w-4 h-4 text-gray-600" />
         </Button>
         
-        <Button variant="ghost" size="sm" className="p-2" asChild>
-          <Link to="/users">
-            <User className="w-4 h-4 text-gray-600" />
-          </Link>
-        </Button>
-
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50" 
-          onClick={handleLogout}
-          title="Logout"
-        >
-          <LogOut className="w-4 h-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="p-2">
+              <User className="w-4 h-4 text-gray-600" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem disabled className="cursor-default">
+              <div className="flex items-center space-x-2">
+                <Avatar className="w-6 h-6">
+                  {profile?.avatar_url && (
+                    <AvatarImage src={profile.avatar_url} />
+                  )}
+                  <AvatarFallback>
+                    {user?.username ? user.username.charAt(0).toUpperCase() : '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-left">
+                  <div className="text-sm font-medium">{user?.username}</div>
+                  <div className="text-xs text-gray-500">
+                    {profile?.bio || 'No bio'}
+                  </div>
+                </div>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>My Profile</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => navigate('/users')}>
+              User Management
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => navigate('/clients')}>
+              Client Management
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>Billing &amp; Plans</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleLogout}>Sign Out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

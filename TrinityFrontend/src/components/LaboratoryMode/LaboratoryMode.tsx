@@ -9,6 +9,7 @@ import AtomLibrary from '@/components/AtomList/AtomLibrary';
 import CanvasArea from './components/CanvasArea';
 import SettingsPanel from './components/SettingsPanel';
 import { useExhibitionStore } from '@/components/ExhibitionMode/store/exhibitionStore';
+import { REGISTRY_API } from '@/lib/api';
 
 const LaboratoryMode = () => {
   const [selectedAtomId, setSelectedAtomId] = useState<string>();
@@ -29,7 +30,7 @@ const LaboratoryMode = () => {
     setIsSettingsCollapsed(!isSettingsCollapsed);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const exhibitedCards = cards.filter(card => card.isExhibited);
 
     setCards(cards);
@@ -43,6 +44,23 @@ const LaboratoryMode = () => {
     
     // Store in localStorage for persistence
     localStorage.setItem('laboratory-config', safeStringify(labConfig));
+
+    const current = localStorage.getItem('current-project');
+    if (current) {
+      try {
+        const proj = JSON.parse(current);
+        await fetch(`${REGISTRY_API}/projects/${proj.id}/`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            state: { laboratory_config: labConfig },
+          }),
+        });
+      } catch {
+        /* ignore */
+      }
+    }
     
     toast({
       title: "Configuration Saved",
