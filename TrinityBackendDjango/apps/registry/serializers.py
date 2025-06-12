@@ -14,7 +14,10 @@ class AppSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
-        slug_field="username", queryset=User.objects.all(), required=False
+        slug_field="username",
+        queryset=User.objects.all(),
+        required=False,
+        default=serializers.CurrentUserDefault(),
     )
 
     class Meta:
