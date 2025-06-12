@@ -2,3 +2,4 @@ Navigation from the /apps page failed because the backend didn't have any App te
 
 The fix seeds four default App records during `create_tenant.py` execution. Now the `/apps` endpoint returns IDs and project creation succeeds, so selecting an app navigates correctly into Workflow mode.
 \nNew issue: 500 error creating projects due to missing "state" column in historical projects. Added migration 0004_historicalproject_state to fix.
+\nClient creation returned 403 because CSRF validation was enforced on the tenants API. Added CsrfExemptSessionAuthentication in TenantViewSet and DomainViewSet so frontend POSTs succeed.

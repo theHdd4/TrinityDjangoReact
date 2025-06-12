@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions
+from apps.accounts.views import CsrfExemptSessionAuthentication
 from .models import Tenant, Domain
 from .serializers import TenantSerializer, DomainSerializer
 
@@ -10,6 +11,7 @@ class TenantViewSet(viewsets.ModelViewSet):
     queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):
@@ -24,6 +26,7 @@ class DomainViewSet(viewsets.ModelViewSet):
     queryset = Domain.objects.select_related("tenant").all()
     serializer_class = DomainSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):
