@@ -15,6 +15,7 @@ import {
 import { Plus, FolderOpen, Calendar, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/Header';
 import { REGISTRY_API } from '@/lib/api';
+import { safeStringify } from '@/utils/safeStringify';
 
 interface Project {
   id: number;
@@ -24,6 +25,7 @@ interface Project {
   app: number;
   state?: Record<string, unknown> | null;
   updated_at: string;
+  lastModified?: Date;
 }
 
 const Projects = () => {
@@ -36,7 +38,11 @@ const Projects = () => {
       const res = await fetch(`${REGISTRY_API}/projects/`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setProjects(data);
+        const parsed = data.map((p: Project) => ({
+          ...p,
+          lastModified: new Date(p.updated_at)
+        }));
+        setProjects(parsed);
       }
     } catch {
       /* ignore */
@@ -52,8 +58,44 @@ const Projects = () => {
     navigate('/apps');
   };
 
-  const openProject = (project: Project) => {
+  const openProject = async (project: Project) => {
     localStorage.setItem('current-project', JSON.stringify(project));
+    try {
+      const res = await fetch(`${REGISTRY_API}/projects/${project.id}/`, {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state && data.state.workflow_canvas) {
+          localStorage.setItem(
+            'workflow-canvas-molecules',
+            safeStringify(data.state.workflow_canvas)
+          );
+        } else {
+          localStorage.removeItem('workflow-canvas-molecules');
+        }
+        if (data.state && data.state.workflow_selected_atoms) {
+          localStorage.setItem(
+            'workflow-selected-atoms',
+            safeStringify(data.state.workflow_selected_atoms)
+          );
+        }
+        if (data.state && data.state.laboratory_config) {
+          localStorage.setItem(
+            'laboratory-config',
+            safeStringify(data.state.laboratory_config)
+          );
+          if (data.state.laboratory_config.cards) {
+            localStorage.setItem(
+              'laboratory-layout-cards',
+              safeStringify(data.state.laboratory_config.cards)
+            );
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
     navigate('/workflow');
   };
 

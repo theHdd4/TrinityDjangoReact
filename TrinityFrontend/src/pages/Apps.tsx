@@ -20,10 +20,11 @@ const Apps = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [appMap, setAppMap] = useState<Record<string, number>>({});
 
+  // Default molecules to preload for each app template
   const templates: Record<string, string[]> = {
-    forecasting: ['explore', 'build'],
-    'marketing-mix': ['data-pre-process', 'explore'],
-    'promo-effectiveness': ['data-pre-process', 'build'],
+    'marketing-mix': ['data-pre-process', 'build'],
+    forecasting: ['data-pre-process', 'explore'],
+    'promo-effectiveness': ['explore', 'build'],
     blank: []
   };
 
@@ -130,8 +131,9 @@ const handleAppSelect = async (appId: string) => {
       const project = await res.json();
       localStorage.setItem('current-project', JSON.stringify(project));
       const ids = templates[appId] || [];
+      let layout: any[] = [];
       if (ids.length > 0) {
-        const layout = ids
+        layout = ids
           .map((id, index) => {
             const info = molecules.find(m => m.id === id);
             if (!info) return null;
@@ -152,11 +154,24 @@ const handleAppSelect = async (appId: string) => {
               atomOrder: [...info.atoms]
             };
           })
-          .filter(Boolean);
+          .filter(Boolean) as any[];
         localStorage.setItem('workflow-canvas-molecules', safeStringify(layout));
       } else {
         localStorage.removeItem('workflow-canvas-molecules');
       }
+
+      // Persist initial workflow layout on the server
+      try {
+        await fetch(`${REGISTRY_API}/projects/${project.id}/`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ state: { workflow_canvas: layout } })
+        });
+      } catch {
+        /* ignore */
+      }
+
       navigate('/workflow');
     }
   } catch {
