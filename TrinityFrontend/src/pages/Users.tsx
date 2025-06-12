@@ -3,6 +3,7 @@ import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 
 interface User {
   id: number;
@@ -12,6 +13,7 @@ interface User {
   last_name: string;
   mfa_enabled: boolean;
   preferences: Record<string, unknown> | null;
+  is_staff: boolean;
 }
 
 import { ACCOUNTS_API } from '@/lib/api';
@@ -53,6 +55,21 @@ const Users = () => {
       });
       if (res.ok) {
         setForm({ username: '', password: '', email: '' });
+        await loadUsers();
+      }
+    } catch {
+      /* ignore errors for demo */
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Delete user?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/users/${id}/`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (res.ok) {
         await loadUsers();
       }
     } catch {
@@ -102,8 +119,11 @@ const Users = () => {
           <CardContent>
             <ul className="space-y-2">
               {users.map((u) => (
-                <li key={u.id} className="border-b pb-1 last:border-none">
-                  {u.username} – {u.email}
+                <li key={u.id} className="border-b pb-1 last:border-none flex justify-between items-center">
+                  <span>{u.username} – {u.email}</span>
+                  <button onClick={() => handleDelete(u.id)} className="text-red-600 hover:text-red-800">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </li>
               ))}
             </ul>

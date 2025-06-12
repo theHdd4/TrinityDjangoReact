@@ -1,0 +1,25 @@
+# Checking PostgreSQL for Trinity
+
+1. **Locate the database credentials**
+   - Open `TrinityBackendDjango/.env` (copy from `.env.example` if missing).
+   - Note `POSTGRES_DB`, `POSTGRES_USER` and `POSTGRES_PASSWORD`.
+
+2. **Connect to the database container**
+   - Start the stack with `docker compose up -d` if not already running.
+   - Access the shell: `docker compose exec postgres bash`.
+
+3. **Use psql to inspect users**
+   - Run `psql -U $POSTGRES_USER $POSTGRES_DB` inside the container.
+   - List tables with `\dt` and check the `accounts_user` table.
+   - To see all users: `SELECT id, username, email, is_staff FROM accounts_user;`.
+
+4. **Verify added users**
+   - After creating a user through the React UI, rerun the `SELECT` query.
+   - The new row should appear with the provided username and email.
+
+5. **Verify deletions**
+   - When removing a user via the UI the row should disappear.
+   - Use the same `SELECT` query to confirm.
+
+6. **Exit psql** with `\q` and then exit the container shell.
+

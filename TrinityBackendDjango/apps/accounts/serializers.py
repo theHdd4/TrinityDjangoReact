@@ -18,8 +18,9 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "mfa_enabled",
             "preferences",
+            "is_staff",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "is_staff"]
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)

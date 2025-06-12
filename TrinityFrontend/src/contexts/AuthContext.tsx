@@ -10,9 +10,15 @@ interface UserInfo {
   preferences: Record<string, unknown> | null;
 }
 
+interface ProfileInfo {
+  bio: string;
+  avatar_url: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: UserInfo | null;
+  profile: ProfileInfo | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
@@ -24,6 +30,19 @@ const API_BASE = ACCOUNTS_API;
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [profile, setProfile] = useState<ProfileInfo | null>(null);
+
+  const loadProfile = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/profiles/`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data[0] || null);
+      }
+    } catch (err) {
+      console.log('Profile fetch error', err);
+    }
+  };
 
   useEffect(() => {
     const authState = localStorage.getItem('isAuthenticated');
@@ -35,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const data = await res.json();
             setUser(data);
             setIsAuthenticated(true);
+            await loadProfile();
           } else {
             setIsAuthenticated(false);
             console.log('Session check failed', res.status);
@@ -63,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(data);
         localStorage.setItem('isAuthenticated', 'true');
         setIsAuthenticated(true);
+        await loadProfile();
         return true;
       } else {
         const text = await res.text();
@@ -80,10 +101,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('isAuthenticated');
     setIsAuthenticated(false);
     setUser(null);
+    setProfile(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, profile, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
